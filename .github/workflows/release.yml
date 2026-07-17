@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Package index
+        required: true
+        type: choice
+        options: [testpypi]
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v8
+      - run: uv build
+      - run: uvx twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+
+  publish-testpypi:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  smoke-test-testpypi:
+    if: github.event_name == 'workflow_dispatch'
+    needs: publish-testpypi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Install the TestPyPI release
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            python -m pip install --index-url https://test.pypi.org/simple/ \
+              --extra-index-url https://pypi.org/simple/ tex2markdown==0.1.0 && break
+            if [ "$attempt" = 6 ]; then exit 1; fi
+            sleep 10
+          done
+      - name: Smoke-test API and CLI
+        run: |
+          python -c "from tex2markdown import convert; assert '# Test' in convert(r'\documentclass{article}\title{Test}\begin{document}Body\end{document}').markdown"
+          printf '\\documentclass{article}\\title{CLI}\\begin{document}Body\\end{document}' | tex2markdown - | grep '# CLI'
+
+  publish-pypi:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

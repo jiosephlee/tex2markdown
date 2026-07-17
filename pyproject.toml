@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tex2markdown"
+version = "0.1.0"
+description = "Source-preserving LaTeX-to-Markdown for scientific papers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "Joseph Lee", email = "jiosephlee@gmail.com" }]
+keywords = ["latex", "markdown", "tex", "arxiv", "scientific-papers"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Text Processing :: Markup :: LaTeX",
+]
+dependencies = [
+  "pylatexenc>=2.10,<3",
+  "pypandoc-binary>=1.17,<2",
+]
+
+[project.urls]
+Homepage = "https://github.com/jiosephlee/tex2markdown"
+Repository = "https://github.com/jiosephlee/tex2markdown"
+Issues = "https://github.com/jiosephlee/tex2markdown/issues"
+
+[project.scripts]
+tex2markdown = "tex2markdown.cli:main"
+
+[dependency-groups]
+dev = [
+  "build>=1.3",
+  "pytest>=8.3",
+  "ruff>=0.12",
+  "twine>=6.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tex2markdown"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 110
+extend-exclude = ["src/tex2markdown/converter.py", "src/tex2markdown/_legacy.py"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
