@@ -6,9 +6,9 @@ Source-preserving LaTeX-to-Markdown conversion for scientific papers.
 LaTeX math and fragile formal content when conversion could change its meaning. It supports
 single TeX files, directory-based projects, and scholarweave-style source bundles.
 
-The converter was developed and validated while building the full-text ClaimSpy retrieval
-corpus. It deliberately removes external figures and captions; it does not download images,
-perform OCR, or pretend that a nonempty document is necessarily a safe conversion.
+The converter has been validated on a large corpus of scientific papers. It deliberately
+removes external figures and captions; it does not download images, perform OCR, or treat a
+nonempty document as sufficient evidence of a safe conversion.
 
 ## Install
 
