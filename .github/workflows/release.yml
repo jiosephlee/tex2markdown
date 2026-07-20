@@ -9,9 +9,24 @@ on:
         type: choice
         options: [testpypi]
   push:
+    branches: [main]
     tags: ["v*"]
 
 jobs:
+  repair-v021-release:
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      github.event.head_commit.message == 'Create v0.2.1 GitHub release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.2.1
+          generate_release_notes: true
+
   build:
     runs-on: ubuntu-latest
     steps:
