@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tex2markdown"
-version = "0.2.1"
+version = "0.2.2"
 description = "Source-preserving LaTeX-to-Markdown for scientific papers"
 readme = "README.md"
 requires-python = ">=3.10"

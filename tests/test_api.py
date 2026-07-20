@@ -182,7 +182,7 @@ title]{\textbf{Full Source Title}\\}
         )
 
     def test_public_api_is_conversion_only(self):
-        self.assertEqual(tex2markdown.__version__, "0.2.1")
+        self.assertEqual(tex2markdown.__version__, "0.2.2")
         for removed in ("PaperMetadata", "ConversionResult", "convert_bundle"):
             self.assertFalse(hasattr(tex2markdown, removed))
 

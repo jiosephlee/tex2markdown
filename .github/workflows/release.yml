@@ -55,7 +55,7 @@ jobs:
         run: |
           for attempt in 1 2 3 4 5 6; do
             python -m pip install --index-url https://test.pypi.org/simple/ \
-              --extra-index-url https://pypi.org/simple/ tex2markdown==0.2.1 && break
+              --extra-index-url https://pypi.org/simple/ tex2markdown==0.2.2 && break
             if [ "$attempt" = 6 ]; then exit 1; fi
             sleep 10
           done

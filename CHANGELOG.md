@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2 - 2026-07-20
+
+- Remove project-specific provenance references from public documentation,
+  package notices, and examples.
+
 ## 0.2.1 - 2026-07-19
 
 - Make the package self-contained by moving rendering, project selection,
