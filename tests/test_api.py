@@ -139,11 +139,11 @@ title]{\textbf{Full Source Title}\\}
     def test_title_expands_local_name_macro(self):
         source = r"""
 \documentclass{article}
-\newcommand{\systemname}{ClaimSpy}
+\newcommand{\systemname}{PaperFinder}
 \title{The \systemname{} Search System}
 \begin{document}\maketitle Body.\end{document}
 """
-        self.assertTrue(tex2markdown.convert(source).startswith("# The ClaimSpy Search System\n"))
+        self.assertTrue(tex2markdown.convert(source).startswith("# The PaperFinder Search System\n"))
 
     def test_title_drops_footnote_and_keeps_subtitle(self):
         source = r"""

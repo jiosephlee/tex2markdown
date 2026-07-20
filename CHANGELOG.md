@@ -22,4 +22,4 @@
 
 ## 0.1.0
 
-- Initial public extraction of the ClaimSpy retrieval conversion strategy.
+- Initial public release of the conversion strategy.

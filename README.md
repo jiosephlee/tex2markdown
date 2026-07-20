@@ -5,9 +5,7 @@ preserves LaTeX math and fragile formal content, converts suitable data tables,
 expands local inputs and macros, and removes figures, captions, image commands,
 and bibliographies.
 
-The package is standalone. Its renderer, project selection, and bundled-source
-expansion are private `tex2markdown` modules; it does not import or require
-ClaimSpy's retrieval pipeline or the repository's archived formal converter.
+The package is self-contained and has no runtime dependencies.
 
 ## Install
 
