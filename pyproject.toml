@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tex2markdown"
-version = "0.1.0"
+version = "0.2.1"
 description = "Source-preserving LaTeX-to-Markdown for scientific papers"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,7 +12,7 @@ license = "Apache-2.0"
 authors = [{ name = "Joseph Lee", email = "jiosephlee@gmail.com" }]
 keywords = ["latex", "markdown", "tex", "arxiv", "scientific-papers"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
@@ -45,6 +45,12 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tex2markdown"]
+
+[tool.hatch.build]
+exclude = [
+  "src/tex2markdown/converter.py",
+  "src/tex2markdown/cases/**",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

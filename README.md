@@ -1,14 +1,13 @@
 # tex2markdown
 
-Source-preserving LaTeX-to-Markdown conversion for scientific papers.
+`tex2markdown` converts a LaTeX document or project to one Markdown string. It
+preserves LaTeX math and fragile formal content, converts suitable data tables,
+expands local inputs and macros, and removes figures, captions, image commands,
+and bibliographies.
 
-`tex2markdown` converts prose and document structure into readable Markdown while retaining
-LaTeX math and fragile formal content when conversion could change its meaning. It supports
-single TeX files, directory-based projects, and scholarweave-style source bundles.
-
-The converter has been validated on a large corpus of scientific papers. It deliberately
-removes external figures and captions; it does not download images, perform OCR, or treat a
-nonempty document as sufficient evidence of a safe conversion.
+The package is standalone. Its renderer, project selection, and bundled-source
+expansion are private `tex2markdown` modules; it does not import or require
+ClaimSpy's retrieval pipeline or the repository's archived formal converter.
 
 ## Install
 
@@ -18,51 +17,61 @@ pip install tex2markdown
 
 ## Python API
 
+Convert one in-memory document:
+
+```python
+from tex2markdown import convert
+
+markdown = convert(r"""
+\documentclass{article}
+\title{A Small Example}
+\begin{document}
+\maketitle
+\section{Result}
+The value is $x^2$.
+\end{document}
+""")
+```
+
+Strings passed to `convert()` are always interpreted as LaTeX source, never as
+file paths. For a file or a multi-file project, use `convert_path()`:
+
 ```python
 from tex2markdown import convert_path
 
-result = convert_path("paper/")
-print(result.markdown)
-print(result.risk_flags)
+markdown = convert_path("paper.tex")
+markdown = convert_path("project/")
+markdown = convert_path("project/", main_file="main.tex")
 ```
 
-For in-memory multi-file projects:
+A directory is scanned recursively. Hidden and version-control paths, common
+binary formats, non-UTF-8 files, and files larger than 20 MB are skipped. The
+main TeX document is selected automatically unless `main_file` is supplied.
+Nested `\input` and `\include` files and referenced local style macros are
+expanded before conversion.
 
-```python
-from tex2markdown import convert_bundle
+Both functions return `str`. Titles and abstracts come only from LaTeX source;
+documents without a title use `# Untitled`. The `\today` command is preserved
+literally, so repeated conversion is deterministic.
 
-result = convert_bundle(
-    {
-        "main.tex": r"\documentclass{article}\begin{document}\input{body}\end{document}",
-        "body.tex": r"\section{Result} The value is $x^2$.",
-    },
-    main_file="main.tex",
-)
-```
-
-## CLI
+## Command line
 
 ```bash
+tex2markdown paper.tex
 tex2markdown paper.tex -o paper.md
-tex2markdown paper-directory/ -o paper.md --metadata conversion.json
+tex2markdown project/ --main-file main.tex
 cat paper.tex | tex2markdown -
 ```
 
-For reproducibility, `\today` remains source LaTeX unless explicitly expanded with
-`--date "July 16, 2026"` or the corresponding `conversion_date` API argument.
+Markdown is written to standard output unless `-o` is supplied. Standard input
+and individual files do not accept `--main-file`.
 
-The optional metadata JSON records the selected source, conversion method, warnings, risk
-flags, and structural inventories. These signals support review and triage; they are not a
-proof of semantic equivalence.
+## Errors
 
-## Conversion policy
-
-- Preserve inline and display math as LaTeX.
-- Convert headings, lists, prose, and suitable data tables to Markdown.
-- Preserve fragile formal systems, algorithms, and complex tables as fenced LaTeX.
-- Remove external graphics, figure environments, and captions.
-- Retain substantive appendices and source-local macro definitions needed by the output.
-- Report suspicious losses through warnings, risk flags, and retrieval status.
+Conversion failures derive from `tex2markdown.ConversionError`. More specific
+types are available for invalid filesystem input, unsupported formats, and main
+source selection: `InputError`, `UnsupportedFormatError`, and
+`SourceSelectionError`.
 
 ## Development
 

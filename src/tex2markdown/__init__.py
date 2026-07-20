@@ -1,26 +1,21 @@
-"""Source-preserving LaTeX-to-Markdown for scientific papers."""
+"""Convert LaTeX documents and projects to Markdown."""
 
-from importlib.metadata import PackageNotFoundError, version
-
-from .api import (
+from .api import convert, convert_path
+from .exceptions import (
     ConversionError,
-    ConversionResult,
-    PaperMetadata,
+    InputError,
     SourceSelectionError,
-    Tex2MarkdownError,
     UnsupportedFormatError,
-    convert,
-    convert_bundle,
-    convert_path,
 )
 
-try:
-    __version__ = version("tex2markdown")
-except PackageNotFoundError:
-    __version__ = "0.0.0"
+__version__ = "0.2.1"
 
 __all__ = [
-    "ConversionError", "ConversionResult", "PaperMetadata", "SourceSelectionError",
-    "Tex2MarkdownError", "UnsupportedFormatError", "convert", "convert_bundle",
-    "convert_path", "__version__",
+    "ConversionError",
+    "InputError",
+    "SourceSelectionError",
+    "UnsupportedFormatError",
+    "__version__",
+    "convert",
+    "convert_path",
 ]

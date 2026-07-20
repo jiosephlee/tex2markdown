@@ -1,150 +1,148 @@
-"""Public conversion API."""
+"""Public conversion-only API."""
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
 
-from . import converter
+from . import _legacy as legacy
+from . import _project as source_selection
+from ._renderer import render_retrieval_document
+from .exceptions import InputError, SourceSelectionError, UnsupportedFormatError
 
-
-class Tex2MarkdownError(Exception):
-    """Base exception for conversion failures."""
-
-
-class UnsupportedFormatError(Tex2MarkdownError):
-    """Raised when the selected input is not LaTeX."""
-
-
-class SourceSelectionError(Tex2MarkdownError):
-    """Raised when no paper body can be selected."""
-
-
-class ConversionError(Tex2MarkdownError):
-    """Raised when a selected LaTeX source cannot be converted."""
-
-
-@dataclass(frozen=True)
-class PaperMetadata:
-    id: str | None = None
-    title: str = ""
-    abstract: str = ""
-    authors: str = ""
-    categories: str = ""
-    doi: str | None = None
-    update_date: str = ""
-
-
-@dataclass(frozen=True)
-class ConversionResult:
-    markdown: str
-    selected_file: str
-    source_file_count: int
-    conversion_method: str
-    warnings: tuple[str, ...] = ()
-    risk_flags: tuple[str, ...] = ()
-    retrieval_status: str = "clean_candidate"
-    metrics: Mapping[str, Any] = field(default_factory=dict)
-
-    def to_dict(self, include_markdown: bool = True) -> dict[str, Any]:
-        result = asdict(self)
-        if not include_markdown:
-            result.pop("markdown")
-        return result
+MAX_FILE_BYTES = 20 * 1024 * 1024
+VCS_PARTS = {".git", ".hg", ".svn", "__pycache__"}
+BINARY_SUFFIXES = {
+    ".7z",
+    ".avi",
+    ".bmp",
+    ".bz2",
+    ".dvi",
+    ".eps",
+    ".exe",
+    ".gif",
+    ".gz",
+    ".ico",
+    ".jpeg",
+    ".jpg",
+    ".mov",
+    ".mp3",
+    ".mp4",
+    ".o",
+    ".pdf",
+    ".png",
+    ".ps",
+    ".pyc",
+    ".so",
+    ".tar",
+    ".tgz",
+    ".tif",
+    ".tiff",
+    ".wav",
+    ".webp",
+    ".xz",
+    ".zip",
+}
 
 
-def bundle_source(files: Mapping[str, str]) -> str:
-    if not files:
-        raise SourceSelectionError("source bundle is empty")
-    blocks = []
-    for name in sorted(files):
-        content = files[name]
-        blocks.append(f"================\nFILE: {name}\n================\n{content}")
-    return "\n".join(blocks)
+def convert(tex_source: str) -> str:
+    """Convert one in-memory LaTeX document to Markdown."""
+    if not isinstance(tex_source, str):
+        raise TypeError("tex_source must be a string")
+    if not tex_source.strip():
+        raise SourceSelectionError("the LaTeX source is empty")
+    if not source_selection.is_paper_candidate("source.tex", tex_source):
+        _raise_source_error(tex_source)
+    return render_retrieval_document(tex_source)[0]
 
 
-def paper_record(source: str, metadata: PaperMetadata | None) -> dict[str, Any]:
-    values = asdict(metadata or PaperMetadata())
-    values["latex"] = source
-    return values
-
-
-def result_from_item(item: dict[str, Any]) -> ConversionResult:
-    record = item["record"]
-    legacy = item["legacy_metrics"]
-    metrics = dict(legacy)
-    metrics["source_inventory"] = item["source_inventory"]
-    metrics["markdown_inventory"] = item["markdown_inventory"]
-    return ConversionResult(
-        markdown=record["markdown"], selected_file=record["source_file"],
-        source_file_count=legacy["source_file_count"],
-        conversion_method=record["conversion_method"], warnings=tuple(record["warnings"]),
-        risk_flags=tuple(item["risk_flags"]), retrieval_status=item["retrieval_status"],
-        metrics=metrics,
-    )
-
-
-def convert(source: str, *, filename: str = "source.tex", metadata: PaperMetadata | None = None,
-            conversion_date: str = r"\today") -> ConversionResult:
-    if not isinstance(source, str):
-        raise TypeError("source must be a string")
-    if "\nFILE:" not in source and converter.legacy.detect_format(source) != "latex":
-        raise UnsupportedFormatError(f"unsupported source format: {filename}")
-    bundled = source if "\nFILE:" in source else bundle_source({filename: source})
-    return _convert(bundled, metadata, None, conversion_date)
-
-
-def convert_bundle(files: Mapping[str, str], *, main_file: str | None = None,
-                   metadata: PaperMetadata | None = None,
-                   conversion_date: str = r"\today") -> ConversionResult:
-    support_only = files and all(name.lower().endswith(converter.source_selection.SUPPORT_SUFFIXES)
-                                 for name in files)
-    if files and not support_only and not any(converter.legacy.detect_format(content) == "latex"
-                                              for content in files.values()):
-        raise UnsupportedFormatError("source bundle contains no LaTeX files")
-    return _convert(bundle_source(files), metadata, main_file, conversion_date)
-
-
-def convert_path(path: str | Path, *, main_file: str | None = None,
-                 metadata: PaperMetadata | None = None,
-                 conversion_date: str = r"\today") -> ConversionResult:
+def convert_path(path: str | Path, *, main_file: str | None = None) -> str:
+    """Convert a UTF-8 TeX file or a directory containing a TeX project."""
     source_path = Path(path)
     if source_path.is_file():
-        return convert(source_path.read_text(encoding="utf-8"), filename=source_path.name,
-                       metadata=metadata, conversion_date=conversion_date)
-    if not source_path.is_dir():
-        raise FileNotFoundError(source_path)
-    return convert_bundle(load_project(source_path), main_file=main_file, metadata=metadata,
-                          conversion_date=conversion_date)
+        if main_file is not None:
+            raise InputError("main_file is only valid for directory input")
+        return convert(_read_utf8(source_path))
+    if source_path.is_dir():
+        return _convert_directory(source_path, main_file)
+    raise InputError(f"input path does not exist: {source_path}")
 
 
-def load_project(root: Path) -> dict[str, str]:
-    files = {}
-    binary_suffixes = {".pdf", ".png", ".jpg", ".jpeg", ".gif", ".dvi", ".gz", ".zip", ".tar"}
-    for path in sorted(item for item in root.rglob("*") if item.is_file()):
-        if path.suffix.lower() in binary_suffixes or path.stat().st_size > 20_000_000:
+def _convert_directory(root: Path, main_file: str | None) -> str:
+    files = _load_project_files(root)
+    if not files:
+        raise SourceSelectionError(f"no readable project files found in {root}")
+    if main_file is not None:
+        source = _select_explicit_main(root, files, main_file)
+    else:
+        selected = source_selection.select_paper_source(_bundle(files))
+        if selected is None:
+            raise SourceSelectionError(f"no main LaTeX document found in {root}")
+        source = selected[0]
+    return render_retrieval_document(source)[0]
+
+
+def _load_project_files(root: Path) -> list[tuple[str, str]]:
+    files = []
+    for path in sorted(root.rglob("*"), key=lambda item: item.as_posix()):
+        if not path.is_file() or _skip_project_path(path, root):
             continue
         try:
-            files[path.relative_to(root).as_posix()] = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
+            if path.stat().st_size > MAX_FILE_BYTES:
+                continue
+            content = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
             continue
+        if "\x00" not in content:
+            files.append((path.relative_to(root).as_posix(), content))
     return files
 
 
-def _convert(source: str, metadata: PaperMetadata | None, main_file: str | None,
-             conversion_date: str) -> ConversionResult:
-    token = converter.legacy.set_document_date(conversion_date)
+def _skip_project_path(path: Path, root: Path) -> bool:
+    relative = path.relative_to(root)
+    if any(part.startswith(".") or part in VCS_PARTS for part in relative.parts):
+        return True
+    return path.suffix.lower() in BINARY_SUFFIXES
+
+
+def _select_explicit_main(root: Path, files: list[tuple[str, str]], main_file: str) -> str:
+    requested = Path(main_file)
+    if requested.is_absolute() or ".." in requested.parts:
+        raise SourceSelectionError("main_file must identify a file inside the project")
+    normalized = requested.as_posix().removeprefix("./")
+    file_map = dict(files)
+    if normalized not in file_map:
+        raise SourceSelectionError(f"main LaTeX file not found: {main_file}")
+    content = file_map[normalized]
+    if not source_selection.is_paper_candidate(normalized, content):
+        _raise_source_error(content, f"main file is not a LaTeX document: {main_file}")
+    return _expand_project_source(content, files, normalized)
+
+
+def _expand_project_source(content: str, files: list[tuple[str, str]], main_name: str) -> str:
+    content = legacy.extract_embedded_tex_document(content)
+    content = legacy.expand_bundled_inputs(content, files, main_name)
+    content = legacy.expand_bundled_bibliography(content, files)
+    content = legacy.expand_bundled_code_listings(content, files, main_name)
+    return legacy.prepend_bundled_package_macros(content, files)
+
+
+def _bundle(files: list[tuple[str, str]]) -> str:
+    return "\n".join(
+        f"================\nFILE: {name}\n================\n{content}" for name, content in files
+    )
+
+
+def _read_utf8(path: Path) -> str:
     try:
-        return result_from_item(converter.convert_paper(paper_record(source, metadata), main_file))
-    except ValueError as error:
-        message = str(error)
-        if "unsupported selected source" in message:
-            raise UnsupportedFormatError(message) from error
-        raise SourceSelectionError(message) from error
-    except Tex2MarkdownError:
-        raise
-    except Exception as error:
-        raise ConversionError(str(error)) from error
-    finally:
-        converter.legacy.reset_document_date(token)
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        raise InputError(f"input file is not UTF-8: {path}") from error
+    except OSError as error:
+        raise InputError(f"could not read input file: {path}") from error
+
+
+def _raise_source_error(source: str, message: str | None = None) -> None:
+    source_format = legacy.detect_format(source)
+    if source_format != "latex":
+        raise UnsupportedFormatError(message or f"unsupported input format: {source_format}")
+    raise SourceSelectionError(message or "input does not contain a LaTeX document body")

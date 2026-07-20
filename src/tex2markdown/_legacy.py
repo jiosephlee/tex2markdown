@@ -1,8 +1,8 @@
-"""Internal helpers extracted from ClaimSpy retrieval v136."""
+"""Vendored helpers used by the standalone conversion path."""
 
+from __future__ import annotations
 
 import contextlib
-import contextvars
 import html
 import io
 import os
@@ -15,9 +15,21 @@ import pypandoc
 from pylatexenc.latex2text import LatexNodes2Text
 
 PS_SIGNATURES = [
-    "%!PS", "%%BoundingBox", "/Times-Roman", "/Helvetica", "%%Page:",
-    "%%EOF", "/F0 ", " SF(", " SF (", "/TeXDict", "/FontType",
-    "/BitMaps", "/BuildChar", "/FontMatrix", "/@startdoc",
+    "%!PS",
+    "%%BoundingBox",
+    "/Times-Roman",
+    "/Helvetica",
+    "%%Page:",
+    "%%EOF",
+    "/F0 ",
+    " SF(",
+    " SF (",
+    "/TeXDict",
+    "/FontType",
+    "/BitMaps",
+    "/BuildChar",
+    "/FontMatrix",
+    "/@startdoc",
 ]
 
 HTML_SIGNATURES = ["<!DOCTYPE", "<html", "<HTML", "<body", "<BODY"]
@@ -85,11 +97,11 @@ RE_PST_ENV = re.compile(r"\\begin\{pspicture\}.*?\\end\{pspicture\}", re.DOTALL 
 
 RE_LGRINDFILE_COMMAND = re.compile(r"\\lgrindfile\s*\{([^{}]+)\}")
 
-RE_VERBATIM_ENV = re.compile(r"\\begin\{(verbatim|Verbatim|lstlisting|alltt)\}(.*?)\\end\{\1\}", re.DOTALL)
+RE_VERBATIM_ENV = re.compile(
+    r"\\begin\{(verbatim|Verbatim|lstlisting|alltt)\}(.*?)\\end\{\1\}", re.DOTALL
+)
 
 RE_VERB_COMMAND = re.compile(r"\\verb\*?(.)(.*?)\1", re.DOTALL)
-
-RE_FIGURE_ENV = re.compile(r"\\begin\{figure\*?\}(?:\[[^\]\n]*\])?(.*?)\\end\{figure\*?\}", re.DOTALL)
 
 RE_CAPTION_COMMAND = re.compile(r"\\caption(?:\[[^\]\n]*\])?\s*\{", re.DOTALL)
 
@@ -203,7 +215,9 @@ RE_GRAPHICS_PLACEHOLDER = re.compile(r"<\s*g\s*r\s*a\s*p\s*h\s*i\s*c\s*s\s*>", r
 
 RE_BIB_STYLE_SPACING = re.compile(r"\.\d+em\s+plus\s+\.\d+em\s+minus\s+-?\.\d+em")
 
-RE_STYLE_TOKEN_LINE = re.compile(r"^\s*(?:acl|aaai|named|fullname|natexlab|subject:\s*file\s*\d+)\s*$", re.IGNORECASE)
+RE_STYLE_TOKEN_LINE = re.compile(
+    r"^\s*(?:acl|aaai|named|fullname|natexlab|subject:\s*file\s*\d+)\s*$", re.IGNORECASE
+)
 
 RE_INTERNAL_CITE_FRAGMENT = re.compile(
     r"(?:commapen-?\d+|cite[^\s]{0,30})?##?\d(?:##?\d)*\s*\(?internalciteb?[A-Za-z0-9:._-]*\)?",
@@ -292,13 +306,22 @@ RE_CITE_FAMILY_COMMAND = re.compile(
 
 RE_REF_FAMILY_COMMAND = re.compile(r"\\(?:ref|eqref|pageref|autoref)\*?\s*\{([^{}\n]*)\}")
 
-RE_RAW_SECTION_COMMAND = re.compile(r"\\(part|chapter|section|subsection|subsubsection|paragraph)\*?\s*\{", re.DOTALL)
+RE_RAW_SECTION_COMMAND = re.compile(
+    r"\\(part|chapter|section|subsection|subsubsection|paragraph)\*?\s*\{", re.DOTALL
+)
 
-RE_RAW_BEGIN_LIST_ENV = re.compile(r"\\begin\{(?:itemize|enumerate|description|romannum)\*?\}", re.IGNORECASE)
+RE_RAW_BEGIN_LIST_ENV = re.compile(
+    r"\\begin\{(?:itemize|enumerate|description|romannum)\*?\}", re.IGNORECASE
+)
 
-RE_RAW_END_LIST_ENV = re.compile(r"\\end\{(?:itemize|enumerate|description|romannum)\*?\}", re.IGNORECASE)
+RE_RAW_END_LIST_ENV = re.compile(
+    r"\\end\{(?:itemize|enumerate|description|romannum)\*?\}", re.IGNORECASE
+)
 
-RE_RAW_OLD_LIST_ENV = re.compile(r"\\(?:begin|end)(?:list|description|enumerate|itemize|romannum)\b(?:\s*\\[A-Za-z]+\b|\s*\{[^{}\n]*\})*", re.IGNORECASE)
+RE_RAW_OLD_LIST_ENV = re.compile(
+    r"\\(?:begin|end)(?:list|description|enumerate|itemize|romannum)\b(?:\s*\\[A-Za-z]+\b|\s*\{[^{}\n]*\})*",
+    re.IGNORECASE,
+)
 
 RE_RAW_PANDOC_SPAN_LIST_ENV = re.compile(r"\\(?:begin|end)<span>list[^<]*</span>", re.IGNORECASE)
 
@@ -307,9 +330,13 @@ RE_RAW_BEGIN_EXAMPLE_ENV = re.compile(
     re.IGNORECASE,
 )
 
-RE_RAW_END_EXAMPLE_ENV = re.compile(r"\\end\{(?:ex|subex|example|examples|lexample)\*?\}", re.IGNORECASE)
+RE_RAW_END_EXAMPLE_ENV = re.compile(
+    r"\\end\{(?:ex|subex|example|examples|lexample)\*?\}", re.IGNORECASE
+)
 
-RE_COUNTER_COMMAND = re.compile(r"\\(?:addtocounter|setcounter|stepcounter)\s*\{[^{}\n]*\}(?:\s*\{[^{}\n]*\})?")
+RE_COUNTER_COMMAND = re.compile(
+    r"\\(?:addtocounter|setcounter|stepcounter)\s*\{[^{}\n]*\}(?:\s*\{[^{}\n]*\})?"
+)
 
 RE_ITEM_ESCAPED_LABEL_COMMAND = re.compile(r"\\item\s*\\\[([^\\\]\n]{0,200})\\\]")
 
@@ -346,19 +373,76 @@ MATH_IDENTIFIER_TOKEN = (
 
 MATH_SHORT_VARIABLE_TOKEN = r"[a-rt-z]"
 
-MATH_SHORT_VARIABLE_PREFIXES = ("any", "as", "each", "solution", "solutions", "vectors", "where", "Where")
+MATH_SHORT_VARIABLE_PREFIXES = (
+    "any",
+    "as",
+    "each",
+    "solution",
+    "solutions",
+    "vectors",
+    "where",
+    "Where",
+)
 
 MATH_TEXT_PREFIXES = (
-    "a", "and", "any", "as", "associate", "by", "defined by", "each", "for",
-    "from", "function", "functions", "in", "length", "let", "Let", "matrix",
-    "matrices", "of", "operator", "operators", "solution", "solutions",
-    "space", "spaces", "the", "The", "to", "vector", "vectors", "where",
-    "Where", "with", "Since", "since",
+    "a",
+    "and",
+    "any",
+    "as",
+    "associate",
+    "by",
+    "defined by",
+    "each",
+    "for",
+    "from",
+    "function",
+    "functions",
+    "in",
+    "length",
+    "let",
+    "Let",
+    "matrix",
+    "matrices",
+    "of",
+    "operator",
+    "operators",
+    "solution",
+    "solutions",
+    "space",
+    "spaces",
+    "the",
+    "The",
+    "to",
+    "vector",
+    "vectors",
+    "where",
+    "Where",
+    "with",
+    "Since",
+    "since",
 )
 
 MATH_TEXT_SUFFIXES = (
-    "and", "are", "be", "by", "for", "from", "has", "have", "in",
-    "if", "is", "of", "stand", "stands", "tend", "tends", "the", "to", "where", "with",
+    "and",
+    "are",
+    "be",
+    "by",
+    "for",
+    "from",
+    "has",
+    "have",
+    "in",
+    "if",
+    "is",
+    "of",
+    "stand",
+    "stands",
+    "tend",
+    "tends",
+    "the",
+    "to",
+    "where",
+    "with",
 )
 
 RE_TEX_DISPLAY_SPACING_COMMAND = re.compile(
@@ -389,9 +473,13 @@ RE_RAW_TABLE_WRAPPER = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 
-RE_RAW_CENTER_WRAPPER = re.compile(r"\\begin\{center\}(.*?)\\end\{center\}", re.DOTALL | re.IGNORECASE)
+RE_RAW_CENTER_WRAPPER = re.compile(
+    r"\\begin\{center\}(.*?)\\end\{center\}", re.DOTALL | re.IGNORECASE
+)
 
-RE_RAW_RESULTS_BLOCK = re.compile(r"\\begin\{results\}(?:\{[^{}\n]*\})?(.*?)\\end\{results\}", re.DOTALL | re.IGNORECASE)
+RE_RAW_RESULTS_BLOCK = re.compile(
+    r"\\begin\{results\}(?:\{[^{}\n]*\})?(.*?)\\end\{results\}", re.DOTALL | re.IGNORECASE
+)
 
 RE_CENTERLINE_COMMAND = re.compile(r"\\centerline\s*\{", re.DOTALL | re.IGNORECASE)
 
@@ -412,7 +500,9 @@ PYDETEX_MATH_COMMANDS = {
 
 RE_MARKDOWN_ATTRIBUTE = re.compile(r"[ \t]*\{#[^}\n]*\}[ \t]*$", re.MULTILINE)
 
-RE_LEADING_ABSTRACT_SECTION = re.compile(r"^\s*#\s+Abstract\s*\n\n.*?\n\n(?=#\s+)", re.DOTALL | re.IGNORECASE)
+RE_LEADING_ABSTRACT_SECTION = re.compile(
+    r"^\s*#\s+Abstract\s*\n\n.*?\n\n(?=#\s+)", re.DOTALL | re.IGNORECASE
+)
 
 RE_CONVERTED_SECTION_LINE = re.compile(
     r"(?m)^(?:§\s+\S.*|#\s+(?!Abstract\b)\S.*|\d+(?:\.\d+)*\.\s+[A-Z][^\n]{4,120})$",
@@ -436,59 +526,276 @@ NEWLINE_SENTINEL = "LINEBREAKCHAR"
 FALLBACK_PLACEHOLDER_PREFIX = "@@@"
 
 DISPLAY_MATH_ENVS = {
-    "equation", "equation*", "align", "align*", "aligned", "aligned*",
-    "eqnarray", "eqnarray*", "gather", "gather*", "split",
-    "multline", "multline*", "displaymath", "math",
+    "equation",
+    "equation*",
+    "align",
+    "align*",
+    "aligned",
+    "aligned*",
+    "eqnarray",
+    "eqnarray*",
+    "gather",
+    "gather*",
+    "split",
+    "multline",
+    "multline*",
+    "displaymath",
+    "math",
 }
 
 FRONT_MATTER_HINTS = (
-    "abstract", "department", "university", "institute", "supported",
-    "grant", "email", "@", "dipartimento", "laboratory", "school of",
+    "abstract",
+    "department",
+    "university",
+    "institute",
+    "supported",
+    "grant",
+    "email",
+    "@",
+    "dipartimento",
+    "laboratory",
+    "school of",
 )
 
 STRUCTURAL_COMMANDS = {
-    "abstract", "address", "affiliation", "author", "bibliography",
-    "bibliographystyle", "chapter", "date", "documentclass",
-    "documentstyle", "email", "endabstract", "endauthor", "enddate",
-    "enddocument", "endtitle", "include", "input", "maketitle",
-    "newcommand", "paragraph", "part", "renewcommand", "section",
-    "subparagraph", "subsection", "subsubsection", "thanks", "title",
+    "abstract",
+    "address",
+    "affiliation",
+    "author",
+    "bibliography",
+    "bibliographystyle",
+    "chapter",
+    "date",
+    "documentclass",
+    "documentstyle",
+    "email",
+    "endabstract",
+    "endauthor",
+    "enddate",
+    "enddocument",
+    "endtitle",
+    "include",
+    "input",
+    "maketitle",
+    "newcommand",
+    "paragraph",
+    "part",
+    "renewcommand",
+    "section",
+    "subparagraph",
+    "subsection",
+    "subsubsection",
+    "thanks",
+    "title",
 }
 
 MATH_COMMANDS = {
-    "alpha", "beta", "gamma", "delta", "epsilon", "varepsilon", "zeta",
-    "eta", "theta", "vartheta", "iota", "kappa", "lambda", "mu", "nu",
-    "xi", "pi", "rho", "sigma", "tau", "upsilon", "phi", "varphi",
-    "chi", "psi", "omega", "Gamma", "Delta", "Theta", "Lambda", "Xi",
-    "Pi", "Sigma", "Upsilon", "Phi", "Psi", "Omega", "frac", "sqrt",
-    "sum", "prod", "int", "lim", "log", "ln", "sin", "cos", "tan",
-    "min", "max", "argmax", "argmin", "sim", "leq", "geq", "neq",
-    "in", "notin", "subset", "subseteq", "supset", "cup", "cap",
-    "times", "cdot", "pm", "mp", "to", "rightarrow", "leftarrow",
-    "Rightarrow", "Leftarrow", "leftrightarrow", "approx", "equiv",
-    "propto", "partial", "nabla", "overline", "bar", "hat", "tilde",
-    "vec", "Vec", "mathrm", "mathbf", "mathit", "mathcal", "mathbb",
+    "alpha",
+    "beta",
+    "gamma",
+    "delta",
+    "epsilon",
+    "varepsilon",
+    "zeta",
+    "eta",
+    "theta",
+    "vartheta",
+    "iota",
+    "kappa",
+    "lambda",
+    "mu",
+    "nu",
+    "xi",
+    "pi",
+    "rho",
+    "sigma",
+    "tau",
+    "upsilon",
+    "phi",
+    "varphi",
+    "chi",
+    "psi",
+    "omega",
+    "Gamma",
+    "Delta",
+    "Theta",
+    "Lambda",
+    "Xi",
+    "Pi",
+    "Sigma",
+    "Upsilon",
+    "Phi",
+    "Psi",
+    "Omega",
+    "frac",
+    "sqrt",
+    "sum",
+    "prod",
+    "int",
+    "lim",
+    "log",
+    "ln",
+    "sin",
+    "cos",
+    "tan",
+    "min",
+    "max",
+    "argmax",
+    "argmin",
+    "sim",
+    "leq",
+    "geq",
+    "neq",
+    "in",
+    "notin",
+    "subset",
+    "subseteq",
+    "supset",
+    "cup",
+    "cap",
+    "times",
+    "cdot",
+    "pm",
+    "mp",
+    "to",
+    "rightarrow",
+    "leftarrow",
+    "Rightarrow",
+    "Leftarrow",
+    "leftrightarrow",
+    "approx",
+    "equiv",
+    "propto",
+    "partial",
+    "nabla",
+    "overline",
+    "bar",
+    "hat",
+    "tilde",
+    "vec",
+    "Vec",
+    "mathrm",
+    "mathbf",
+    "mathit",
+    "mathcal",
+    "mathbb",
     "mathsf",
-    "operatorname", "ensuremath", "mathtt", "mbox", "text", "textbf",
-    "dots", "langle", "rangle", "avmspan", "ne", "le", "ge", "tag", "succ",
-    "nexists", "exists", "forall", "left", "right", "colon", "mapsto",
-    "varnothing", "rule", "sideset", "mathinner", "cdots", "ldots",
-    "qquad", "quad", "cr", "eqalign", "hbox", "vcenter", "noalign",
-    "vee", "mathrel", "joinrel", "mid", "infty", "Box", "lefteqn",
-    "limits", "scriptsize", "cal", "over", "choose", "bigvee",
+    "operatorname",
+    "ensuremath",
+    "mathtt",
+    "mbox",
+    "text",
+    "textbf",
+    "dots",
+    "langle",
+    "rangle",
+    "avmspan",
+    "ne",
+    "le",
+    "ge",
+    "tag",
+    "succ",
+    "nexists",
+    "exists",
+    "forall",
+    "left",
+    "right",
+    "colon",
+    "mapsto",
+    "varnothing",
+    "rule",
+    "sideset",
+    "mathinner",
+    "cdots",
+    "ldots",
+    "qquad",
+    "quad",
+    "cr",
+    "eqalign",
+    "hbox",
+    "vcenter",
+    "noalign",
+    "vee",
+    "mathrel",
+    "joinrel",
+    "mid",
+    "infty",
+    "Box",
+    "lefteqn",
+    "limits",
+    "scriptsize",
+    "cal",
+    "over",
+    "choose",
+    "bigvee",
 }
 
-NON_EXPANDABLE_COMMANDS = STRUCTURAL_COMMANDS | MATH_COMMANDS | {
-    "and", "bf", "bfseries", "bibitem", "centerline", "centering",
-    "cite", "em", "emph", "footnote", "hbox", "hfill", "hfil",
-    "hspace", "it", "itshape", "item", "label", "large", "Large",
-    "LARGE", "let", "mbox", "noindent", "normalsize", "par", "parbox",
-    "quad", "qquad", "ref", "rm", "rmfamily", "sc", "scshape", "small",
-    "smallskip", "textbf", "textit", "textsc", "texttt", "tt", "ttfamily",
-    "vbox", "vfill", "vfil", "vspace",
-    "Qcontrol", "Rcontrol", "Rtoggle", "Qtoggle", "Qpass", "Qcross",
-    "Lvert", "Lcross", "Lup", "Ldown", "lvert", "lcross", "lup", "ldown",
-}
+NON_EXPANDABLE_COMMANDS = (
+    STRUCTURAL_COMMANDS
+    | MATH_COMMANDS
+    | {
+        "and",
+        "bf",
+        "bfseries",
+        "bibitem",
+        "centerline",
+        "centering",
+        "cite",
+        "em",
+        "emph",
+        "footnote",
+        "hbox",
+        "hfill",
+        "hfil",
+        "hspace",
+        "it",
+        "itshape",
+        "item",
+        "label",
+        "large",
+        "Large",
+        "LARGE",
+        "let",
+        "mbox",
+        "noindent",
+        "normalsize",
+        "par",
+        "parbox",
+        "quad",
+        "qquad",
+        "ref",
+        "rm",
+        "rmfamily",
+        "sc",
+        "scshape",
+        "small",
+        "smallskip",
+        "textbf",
+        "textit",
+        "textsc",
+        "texttt",
+        "tt",
+        "ttfamily",
+        "vbox",
+        "vfill",
+        "vfil",
+        "vspace",
+        "Qcontrol",
+        "Rcontrol",
+        "Rtoggle",
+        "Qtoggle",
+        "Qpass",
+        "Qcross",
+        "Lvert",
+        "Lcross",
+        "Lup",
+        "Ldown",
+        "lvert",
+        "lcross",
+        "lup",
+        "ldown",
+    }
+)
 
 QUANTUM_GATE_MACROS = {
     "Qcontrol": "control with vertical wire",
@@ -506,6 +813,7 @@ QUANTUM_GATE_MACROS = {
     "lup": "up wire",
     "ldown": "down wire",
 }
+
 
 def detect_format(tex: str) -> str:
     """Detect whether content is LaTeX, PostScript, HTML, or unknown."""
@@ -526,16 +834,21 @@ def detect_format(tex: str) -> str:
         return "binary"
     return "latex" if len(re.findall(r"\\[a-zA-Z]+", head)) > 10 else "unknown"
 
+
 def postscript_input_signature_count(text: str) -> int:
     """Count PostScript signatures in raw input without over-weighting EPS macros."""
     return sum(1 for sig in PS_SIGNATURES if sig in text)
+
 
 def looks_like_tex_macro_source(head: str) -> bool:
     """Recognize TeX macro files that mention PostScript syntax as strings."""
     if len(re.findall(r"\\[A-Za-z@]+", head)) < 8:
         return False
     macro_defs = len(re.findall(r"\\(?:def|gdef|edef|xdef|newcommand|let)\b", head))
-    return macro_defs >= 2 or any(token in head for token in ("\\ifx", "\\catcode", "\\ProvidesPackage"))
+    return macro_defs >= 2 or any(
+        token in head for token in ("\\ifx", "\\catcode", "\\ProvidesPackage")
+    )
+
 
 def is_binary_payload(head: str) -> bool:
     """Detect DVI/tar/binary payloads stored in the LaTeX column."""
@@ -544,6 +857,7 @@ def is_binary_payload(head: str) -> bool:
     if any(sig in head for sig in BINARY_SIGNATURES):
         return True
     return head.count("\ufffd") >= 5
+
 
 def split_source_files(bundle: str) -> list[tuple[str, str]]:
     """Split scholarweave-style concatenated FILE blocks when present."""
@@ -559,6 +873,7 @@ def split_source_files(bundle: str) -> list[tuple[str, str]]:
             files.append((match.group(1).strip(), content))
     return files or [("source", bundle)]
 
+
 def score_source_file(name: str, content: str) -> float:
     """Score a source fragment for likelihood of being the main paper TeX."""
     lower = name.lower()
@@ -572,10 +887,12 @@ def score_source_file(name: str, content: str) -> float:
     score -= 100 if lower.endswith((".bbl", ".bib", ".sty", ".cls", ".bst")) else 0
     return score
 
+
 def extract_embedded_tex_document(content: str) -> str:
     """Trim tar/binary wrappers around an embedded TeX document."""
     starts = [
-        pos for pos in [
+        pos
+        for pos in [
             content.find("\\documentclass"),
             content.find("\\documentstyle"),
             content.find("\\begin{document}"),
@@ -588,15 +905,19 @@ def extract_embedded_tex_document(content: str) -> str:
         start = comment_start + 1 if comment_start != -1 else min(starts)
         content = content[start:]
     end = RE_END_DOCUMENT.search(content)
-    if end and ("\x00" in content[end.end():] or "%%Trailer" in content[end.end():]):
-        content = content[:end.end()]
+    if end and ("\x00" in content[end.end() :] or "%%Trailer" in content[end.end() :]):
+        content = content[: end.end()]
     return content
 
-def expand_bundled_inputs(content: str, files: list[tuple[str, str]], root_name: str = "source") -> str:
+
+def expand_bundled_inputs(
+    content: str, files: list[tuple[str, str]], root_name: str = "source"
+) -> str:
     """Inline local bundled TeX files referenced by input/include."""
     file_map = bundled_file_map(files)
     current_dir = normalize_bundle_key(str(Path(root_name).parent))
     return expand_inputs_recursive(content, file_map, set(), current_dir, 0)
+
 
 def bundled_file_map(files: list[tuple[str, str]]) -> dict[str, tuple[str, str]]:
     """Map bundle filenames and extensionless aliases to content."""
@@ -613,6 +934,7 @@ def bundled_file_map(files: list[tuple[str, str]]) -> dict[str, tuple[str, str]]
                 result[key] = (canonical, content)
     return result
 
+
 def expand_bundled_bibliography(content: str, files: list[tuple[str, str]]) -> str:
     """Inline bundled .bbl bibliography bodies referenced by wrappers."""
     file_map = bundled_file_map(files)
@@ -626,6 +948,7 @@ def expand_bundled_bibliography(content: str, files: list[tuple[str, str]]) -> s
         return "\n\n".join(chunks) if chunks else match.group(0)
 
     return RE_BIBLIOGRAPHY_COMMAND.sub(replace, content)
+
 
 def expand_bundled_code_listings(content: str, files: list[tuple[str, str]], root_name: str) -> str:
     """Inline bundled lgrind-generated code listing files as protected text."""
@@ -645,6 +968,7 @@ def expand_bundled_code_listings(content: str, files: list[tuple[str, str]], roo
 
     return RE_LGRINDFILE_COMMAND.sub(replace, content)
 
+
 def prepend_bundled_package_macros(content: str, files: list[tuple[str, str]]) -> str:
     """Prepend definitions from local packages referenced by the main source."""
     package_names = referenced_package_names(content)
@@ -660,7 +984,9 @@ def prepend_bundled_package_macros(content: str, files: list[tuple[str, str]]) -
             continue
         canonical, package_source = resolved
         for start, end, name, _, body in package_macro_definitions(package_source):
-            if name not in used_commands and not any(cmd in used_commands for cmd in re.findall(r"\\[A-Za-z]+", body)):
+            if name not in used_commands and not any(
+                cmd in used_commands for cmd in re.findall(r"\\[A-Za-z]+", body)
+            ):
                 continue
             key = (canonical, name, body)
             if key in seen:
@@ -670,6 +996,7 @@ def prepend_bundled_package_macros(content: str, files: list[tuple[str, str]]) -
     if not definitions:
         return content
     return "\n".join(definitions) + "\n\n" + content
+
 
 def referenced_package_names(content: str) -> list[str]:
     """Return package names named in usepackage/documentstyle commands."""
@@ -686,9 +1013,15 @@ def referenced_package_names(content: str) -> list[str]:
             result.append(name)
     return result
 
+
 def split_package_names(value: str) -> list[str]:
     """Split a comma-separated LaTeX package list."""
-    return [normalize_bundle_key(part.strip()).removesuffix(".sty") for part in value.split(",") if part.strip()]
+    return [
+        normalize_bundle_key(part.strip()).removesuffix(".sty")
+        for part in value.split(",")
+        if part.strip()
+    ]
+
 
 def resolve_bundled_package(
     name: str,
@@ -702,9 +1035,15 @@ def resolve_bundled_package(
             return file_map[key]
     return None
 
+
 def package_macro_definitions(content: str) -> list[tuple[int, int, str, int, str]]:
     """Collect macro definitions from a package without importing package text."""
-    return collect_macros(RE_NEWCOMMAND, content) + collect_macros(RE_DEF, content) + collect_macros(RE_DEFINE, content)
+    return (
+        collect_macros(RE_NEWCOMMAND, content)
+        + collect_macros(RE_DEF, content)
+        + collect_macros(RE_DEFINE, content)
+    )
+
 
 def decode_lgrind_listing(content: str) -> str:
     """Decode the common lgrind TeX listing format into readable code."""
@@ -719,8 +1058,9 @@ def decode_lgrind_listing(content: str) -> str:
         close_at = find_matching_brace(line, brace_at)
         if close_at == -1:
             continue
-        lines.append(clean_lgrind_line(line[brace_at + 1:close_at]))
+        lines.append(clean_lgrind_line(line[brace_at + 1 : close_at]))
     return "\n".join(lines).strip()
+
 
 def clean_lgrind_line(value: str) -> str:
     """Strip lgrind's TeX wrappers while preserving code tokens."""
@@ -749,7 +1089,10 @@ def clean_lgrind_line(value: str) -> str:
     value = value.replace("_", " ")
     return value.rstrip()
 
-def resolve_bundled_bibliography(name: str, file_map: dict[str, tuple[str, str]]) -> tuple[str, str] | None:
+
+def resolve_bundled_bibliography(
+    name: str, file_map: dict[str, tuple[str, str]]
+) -> tuple[str, str] | None:
     """Resolve a bibliography command to a bundled generated .bbl first."""
     name = normalize_bundle_key(name)
     candidates = [name + ".bbl", name, Path(name).name + ".bbl", Path(name).name]
@@ -758,6 +1101,7 @@ def resolve_bundled_bibliography(name: str, file_map: dict[str, tuple[str, str]]
             return file_map[key]
     return None
 
+
 def normalize_bundle_key(value: str) -> str:
     """Normalize bundled path names for input/include matching."""
     value = value.strip().replace("\\", "/")
@@ -765,6 +1109,7 @@ def normalize_bundle_key(value: str) -> str:
         value = value[2:]
     value = re.sub(r"/+", "/", value)
     return value.strip("/")
+
 
 def expand_inputs_recursive(
     content: str,
@@ -795,6 +1140,7 @@ def expand_inputs_recursive(
     content = RE_INPUT_BRACED_NAME.sub(replace, content)
     return RE_INPUT_BARE_NAME.sub(replace, content)
 
+
 def resolve_bundled_input(
     name: str,
     current_dir: str,
@@ -813,10 +1159,12 @@ def resolve_bundled_input(
             return file_map[key]
     return None
 
+
 def input_match_name(match: re.Match) -> str:
     """Normalize an input/include target name."""
     value = match.group(1).strip()
     return normalize_bundle_key(value).removesuffix(".tex")
+
 
 def should_inline_bundled_file(name: str, content: str) -> bool:
     """Inline paper body files and small macro files, not large packages."""
@@ -828,27 +1176,44 @@ def should_inline_bundled_file(name: str, content: str) -> bool:
         return True
     return not looks_like_tex_package(content)
 
+
 def has_article_body_cue(content: str) -> bool:
     """Detect included TeX fragments that are likely paper body content."""
     content = RE_COMMENT_LINE.sub("", content)
     cues = (
-        "\\begin{document}", "\\documentclass", "\\documentstyle",
-        "\\chapter", "\\section", "\\heading", "\\subheading",
-        "\\title", "\\abstract", "\\begin{abstract}",
+        "\\begin{document}",
+        "\\documentclass",
+        "\\documentstyle",
+        "\\chapter",
+        "\\section",
+        "\\heading",
+        "\\subheading",
+        "\\title",
+        "\\abstract",
+        "\\begin{abstract}",
     )
     return any(cue in content for cue in cues)
+
 
 def looks_like_tex_package(content: str) -> bool:
     """Detect macro packages stored as .tex files inside bundles."""
     head = content[:8000]
     package_hints = (
-        "\\ProvidesPackage", "\\fileversion", "\\catcode", "\\endinput",
-        "macro package", "tree macros", "docstrip",
+        "\\ProvidesPackage",
+        "\\fileversion",
+        "\\catcode",
+        "\\endinput",
+        "macro package",
+        "tree macros",
+        "docstrip",
     )
-    macro_pattern = r"\\(?:def|edef|gdef|xdef|newcommand|newenvironment|newcounter|newsavebox|setcounter)\b"
+    macro_pattern = (
+        r"\\(?:def|edef|gdef|xdef|newcommand|newenvironment|newcounter|newsavebox|setcounter)\b"
+    )
     macro_defs = len(re.findall(macro_pattern, head, re.IGNORECASE))
     prose_words = len(re.findall(r"\b[a-zA-Z]{4,}\b", RE_COMMENT_LINE.sub("", head)))
     return any(hint in head for hint in package_hints) or macro_defs > max(20, prose_words // 8)
+
 
 def find_matching_brace(text: str, start: int) -> int:
     """Find the closing brace matching the opening brace at start."""
@@ -862,6 +1227,7 @@ def find_matching_brace(text: str, start: int) -> int:
         i += 1
     return i - 1 if depth == 0 else -1
 
+
 def collect_macros(pattern: re.Pattern, tex: str) -> list[tuple[int, int, str, int, str]]:
     """Collect macro definitions and exact spans to remove."""
     macros = []
@@ -874,8 +1240,11 @@ def collect_macros(pattern: re.Pattern, tex: str) -> list[tuple[int, int, str, i
             nargs = int(match.group(2)) if match.group(2) else 0
         else:
             nargs = len(re.findall(r"#\d", match.group(2) or ""))
-        macros.append((match.start(), brace_end + 1, match.group(1), nargs, tex[brace_start + 1:brace_end]))
+        macros.append(
+            (match.start(), brace_end + 1, match.group(1), nargs, tex[brace_start + 1 : brace_end])
+        )
     return macros
+
 
 def merged_spans(spans) -> list[tuple[int, int]]:
     """Merge overlapping source spans and return them in reverse order."""
@@ -887,10 +1256,12 @@ def merged_spans(spans) -> list[tuple[int, int]]:
             merged[-1][1] = max(merged[-1][1], end)
     return [(start, end) for start, end in reversed(merged)]
 
+
 def should_expand_macro(name: str) -> bool:
     """Avoid expanding built-in structural commands redefined in preambles."""
     command = name.lstrip("\\")
     return command not in NON_EXPANDABLE_COMMANDS and not command.startswith("@")
+
 
 def strip_iffalse_blocks(tex: str) -> str:
     """Drop disabled draft/source blocks before conversion."""
@@ -900,11 +1271,13 @@ def strip_iffalse_blocks(tex: str) -> str:
         tex = RE_IFFALSE_BLOCK.sub("", tex)
     return tex
 
+
 def strip_known_malformed_preamble(tex: str) -> str:
     """Early-strip sources whose preamble macros confuse later block protection."""
     if "Hinged Dissection of Polyominoes and Polyforms" not in tex:
         return tex
     return strip_preamble(tex)
+
 
 def collect_newtheorem_definitions(tex: str) -> list[tuple[int, int, str, str]]:
     """Collect simple newtheorem environment names and display labels."""
@@ -914,9 +1287,9 @@ def collect_newtheorem_definitions(tex: str) -> list[tuple[int, int, str, str]]:
         env_end = find_matching_brace(tex, env_start)
         if env_end == -1:
             continue
-        env = tex[env_start + 1:env_end].strip()
+        env = tex[env_start + 1 : env_end].strip()
         index = env_end + 1
-        if index < len(tex) and tex[index:index + 1] == "[":
+        if index < len(tex) and tex[index : index + 1] == "[":
             close = tex.find("]", index + 1)
             if close == -1:
                 continue
@@ -928,9 +1301,9 @@ def collect_newtheorem_definitions(tex: str) -> list[tuple[int, int, str, str]]:
         title_end = find_matching_brace(tex, index)
         if title_end == -1:
             continue
-        title = clean_linguistic_text(tex[index + 1:title_end]) or env.replace("_", " ").title()
+        title = clean_linguistic_text(tex[index + 1 : title_end]) or env.replace("_", " ").title()
         end = title_end + 1
-        if end < len(tex) and tex[end:end + 1] == "[":
+        if end < len(tex) and tex[end : end + 1] == "[":
             close = tex.find("]", end + 1)
             if close != -1:
                 end = close + 1
@@ -938,24 +1311,33 @@ def collect_newtheorem_definitions(tex: str) -> list[tuple[int, int, str, str]]:
             definitions.append((match.start(), end, env, title))
     return definitions
 
+
 def strip_huge_preamble_before_macro_expansion(tex: str) -> str:
     """Avoid converting embedded macro packages as paper body."""
     begin = RE_BEGIN_DOCUMENT.search(tex)
     if not begin or begin.start() < 50000:
         return tex
-    prefix = tex[:begin.start()]
+    prefix = tex[: begin.start()]
     macro_markers = prefix.count(r"\def") + prefix.count(r"\catcode") + prefix.count(r"\newdimen")
     if macro_markers < 25 and "PICTEX" not in prefix.upper():
         return tex
     return strip_preamble(tex)
 
+
 def normalize_graphics_commands(tex: str) -> str:
     """Preserve external image filenames as explicit figure placeholders."""
-    tex = RE_GRAPHICS_COMMAND.sub(lambda match: figure_placeholder(graphics_filename(match.group(1))), tex)
-    tex = RE_EPSFBOX_COMMAND.sub(lambda match: figure_placeholder(graphics_filename(match.group(1))), tex)
-    tex = RE_EPSFBOX_BARE_COMMAND.sub(lambda match: figure_placeholder(graphics_filename(match.group(1))), tex)
+    tex = RE_GRAPHICS_COMMAND.sub(
+        lambda match: figure_placeholder(graphics_filename(match.group(1))), tex
+    )
+    tex = RE_EPSFBOX_COMMAND.sub(
+        lambda match: figure_placeholder(graphics_filename(match.group(1))), tex
+    )
+    tex = RE_EPSFBOX_BARE_COMMAND.sub(
+        lambda match: figure_placeholder(graphics_filename(match.group(1))), tex
+    )
     tex = RE_EPSF_SIZE_COMMAND.sub("", tex)
     return RE_GRAPHICS_INPUT.sub(lambda match: figure_placeholder(match.group(1)), tex)
+
 
 def normalize_custom_section_commands(tex: str) -> str:
     """Map common paper-local section commands to normal LaTeX sections."""
@@ -964,15 +1346,17 @@ def normalize_custom_section_commands(tex: str) -> str:
         close = find_matching_brace(tex, match.end() - 1)
         if close == -1:
             continue
-        title = clean_source_title(tex[match.end():close])
+        title = clean_source_title(tex[match.end() : close])
         if title:
             command = "subsection" if "sub" in match.group(1).lower() else "section"
-            tex = tex[:match.start()] + rf"\{command}{{{title}}}" + tex[close + 1:]
+            tex = tex[: match.start()] + rf"\{command}{{{title}}}" + tex[close + 1 :]
     return tex
+
 
 def code_listing_placeholder(path: str) -> str:
     """Create a stable marker for code files absent from the source bundle."""
     return f"\n\n[Code listing omitted: {path} not bundled]\n\n"
+
 
 def graphics_filename(argument: str) -> str:
     """Extract the best filename from graphics command arguments."""
@@ -981,9 +1365,11 @@ def graphics_filename(argument: str) -> str:
     filename = filename.strip("\"'{} ")
     return filename or "external graphic"
 
+
 def figure_placeholder(filename: str) -> str:
     """Create a stable textual marker for omitted external graphics."""
     return f"\n\n[Figure omitted: {filename}]\n\n"
+
 
 def extract_latex_caption(body: str) -> str:
     """Extract one balanced caption argument from a figure body."""
@@ -993,7 +1379,8 @@ def extract_latex_caption(body: str) -> str:
     close = find_matching_brace(body, match.end() - 1)
     if close == -1:
         return ""
-    return clean_linguistic_text(body[match.end():close])
+    return clean_linguistic_text(body[match.end() : close])
+
 
 def remove_latex_caption_commands(body: str) -> str:
     """Remove balanced caption commands from a preserved figure body."""
@@ -1003,8 +1390,9 @@ def remove_latex_caption_commands(body: str) -> str:
             return body
         close = find_matching_brace(body, match.end() - 1)
         if close == -1:
-            return body[:match.start()] + body[match.end():]
-        body = body[:match.start()] + body[close + 1:]
+            return body[: match.start()] + body[match.end() :]
+        body = body[: match.start()] + body[close + 1 :]
+
 
 def read_braced_args(text: str, start: int, count: int) -> tuple[list[str], int] | None:
     """Read count balanced braced arguments starting at or after start."""
@@ -1018,9 +1406,10 @@ def read_braced_args(text: str, start: int, count: int) -> tuple[list[str], int]
         close = find_matching_brace(text, index)
         if close == -1:
             return None
-        args.append(text[index + 1:close])
+        args.append(text[index + 1 : close])
         index = close + 1
     return args, index
+
 
 def protected_verbatim_text(content: str) -> str:
     """Encode verbatim content so fallback converters keep it."""
@@ -1034,6 +1423,7 @@ def protected_verbatim_text(content: str) -> str:
     )
     return f"\n\n{VERBATIM_BEGIN}\n{content}\n{VERBATIM_END}\n\n"
 
+
 def is_commented_out_verbatim_block(content: str) -> bool:
     """Detect disabled examples stored as fully commented verbatim blocks."""
     lines = [line.strip() for line in content.splitlines() if line.strip()]
@@ -1042,12 +1432,14 @@ def is_commented_out_verbatim_block(content: str) -> bool:
     commented = sum(1 for line in lines if line.startswith("%"))
     return commented >= max(3, int(len(lines) * 0.8))
 
+
 def picture_environment_replacement(content: str) -> str:
     """Replace picture source with a concise, non-leaky omission marker."""
     summary = picture_environment_summary(content)
     if summary:
         return f"\n\n[Figure omitted: picture environment; {summary}]\n\n"
     return "\n\n[Figure omitted: picture environment]\n\n"
+
 
 def picture_environment_summary(content: str) -> str:
     """Extract labels from old picture/gnuplot figures without dumping coordinates."""
@@ -1057,6 +1449,7 @@ def picture_environment_summary(content: str) -> str:
     labels = picture_environment_word_labels(content)
     return "labels: " + labels if labels else ""
 
+
 def extract_picture_text_labels(content: str) -> list[str]:
     """Collect visible text labels embedded in makebox/framebox picture commands."""
     labels = []
@@ -1064,12 +1457,13 @@ def extract_picture_text_labels(content: str) -> list[str]:
         close = find_matching_brace(content, match.end() - 1)
         if close == -1:
             continue
-        label = clean_picture_label(content[match.end():close])
+        label = clean_picture_label(content[match.end() : close])
         if label and label not in labels:
             labels.append(label)
         if len(labels) >= 40:
             break
     return labels
+
 
 def clean_picture_label(value: str) -> str:
     """Clean a visible picture label while preserving numeric tick values."""
@@ -1091,19 +1485,55 @@ def clean_picture_label(value: str) -> str:
     value = " ".join(value.split())
     return value.strip(" ,;:")
 
+
 def picture_environment_word_labels(content: str) -> str:
     """Extract word-like labels from picture commands."""
     words = re.findall(r"[A-Za-z]{3,}", content)
     ignored = {
-        "begin", "end", "picture", "put", "line", "vector", "framebox",
-        "makebox", "dashbox", "oval", "circle", "thicklines", "thinlines",
-        "special", "psfile", "unitlength", "scriptsize", "footnotesize",
-        "small", "large", "center", "left", "right",
-        "beginpicture", "endpicture", "multiput", "lfvec", "upvec",
-        "rtvec", "dnvec", "disk", "dsk", "hskip", "number",
-        "epsfxsize", "epsfysize", "epsffile", "epsfbox",
-        "setfigfont", "rmdefault", "mddefault", "updefault",
-        "path", "smash",
+        "begin",
+        "end",
+        "picture",
+        "put",
+        "line",
+        "vector",
+        "framebox",
+        "makebox",
+        "dashbox",
+        "oval",
+        "circle",
+        "thicklines",
+        "thinlines",
+        "special",
+        "psfile",
+        "unitlength",
+        "scriptsize",
+        "footnotesize",
+        "small",
+        "large",
+        "center",
+        "left",
+        "right",
+        "beginpicture",
+        "endpicture",
+        "multiput",
+        "lfvec",
+        "upvec",
+        "rtvec",
+        "dnvec",
+        "disk",
+        "dsk",
+        "hskip",
+        "number",
+        "epsfxsize",
+        "epsfysize",
+        "epsffile",
+        "epsfbox",
+        "setfigfont",
+        "rmdefault",
+        "mddefault",
+        "updefault",
+        "path",
+        "smash",
     }
     labels = []
     for word in words:
@@ -1116,6 +1546,7 @@ def picture_environment_word_labels(content: str) -> str:
             break
     return ", ".join(labels) if len(labels) >= 3 else ""
 
+
 def clean_linguistic_text(value: str) -> str:
     """Strip layout/style commands while preserving example words."""
     value = RE_MATH_LABEL_COMMAND.sub("", value)
@@ -1124,7 +1555,9 @@ def clean_linguistic_text(value: str) -> str:
     value = re.sub(r"\{\\(?:sc|it|bf|em|rm|tt|sf)\s+([^{}]*)\}", r"\1", value)
     value = re.sub(r"\\(?:textbf|textit|textsc|emph|mbox)\s*\{([^{}]*)\}", r"\1", value)
     value = re.sub(r"\\(?:sc|it|bf|em|rm|tt|sf)\b", " ", value)
-    value = re.sub(r"\\(?:alpha|beta|gamma|delta|lambda|mu|sigma|tau)\b", lambda m: m.group(0)[1:], value)
+    value = re.sub(
+        r"\\(?:alpha|beta|gamma|delta|lambda|mu|sigma|tau)\b", lambda m: m.group(0)[1:], value
+    )
     value = value.replace(r"\/", "")
     value = value.replace("$", "")
     value = value.replace("&", "  ").replace("~", " ")
@@ -1132,18 +1565,20 @@ def clean_linguistic_text(value: str) -> str:
     value = value.replace("{", " ").replace("}", " ")
     return "\n".join(" ".join(line.split()) for line in value.splitlines() if line.strip())
 
+
 def strip_preamble(tex: str) -> str:
     """Remove preamble/topmatter after macros have been expanded."""
     begin = RE_BEGIN_DOCUMENT.search(tex)
     if begin:
-        tex = tex[begin.end():]
+        tex = tex[begin.end() :]
         end = RE_END_DOCUMENT.search(tex)
-        return tex[:end.start()] if end else tex
+        return tex[: end.start()] if end else tex
     topmatter = RE_END_TOPMATTER.search(tex)
     if topmatter:
-        tex = tex[topmatter.end():]
+        tex = tex[topmatter.end() :]
     end = RE_END_DOCUMENT.search(tex)
-    return tex[:end.start()] if end else tex
+    return tex[: end.start()] if end else tex
+
 
 def unwrap_preconversion_text_formatting(tex: str) -> str:
     """Preserve text macro bodies and spacing before fallback conversion."""
@@ -1154,6 +1589,7 @@ def unwrap_preconversion_text_formatting(tex: str) -> str:
         tex = unwrap_argument_command_pattern(tex, RE_TEXT_FORMATTING_ARGUMENT_COMMAND, block=False)
     return tex
 
+
 def drop_balanced_argument_commands(tex: str, pattern: re.Pattern) -> str:
     """Drop commands whose braced argument is explicitly ignored/commented."""
     matches = list(pattern.finditer(tex))
@@ -1161,8 +1597,9 @@ def drop_balanced_argument_commands(tex: str, pattern: re.Pattern) -> str:
         open_brace = match.end() - 1
         close_brace = find_matching_brace(tex, open_brace)
         if close_brace != -1:
-            tex = tex[:match.start()] + "\n\n" + tex[close_brace + 1:]
+            tex = tex[: match.start()] + "\n\n" + tex[close_brace + 1 :]
     return tex
+
 
 def unwrap_argument_command_pattern(tex: str, pattern: re.Pattern, block: bool) -> str:
     """Replace matched one-argument commands with their balanced argument."""
@@ -1172,10 +1609,11 @@ def unwrap_argument_command_pattern(tex: str, pattern: re.Pattern, block: bool) 
         close_brace = find_matching_brace(tex, open_brace)
         if close_brace == -1:
             continue
-        body = tex[open_brace + 1:close_brace].strip()
+        body = tex[open_brace + 1 : close_brace].strip()
         replacement = f"\n\n{body}\n\n" if block else body
-        tex = tex[:match.start()] + replacement + tex[close_brace + 1:]
+        tex = tex[: match.start()] + replacement + tex[close_brace + 1 :]
     return tex
+
 
 def convert_pandoc(tex: str) -> str | None:
     """Try converting with pandoc, bounded so one source cannot stall a run."""
@@ -1196,28 +1634,22 @@ def convert_pandoc(tex: str) -> str | None:
         return None
     return None
 
-_DOCUMENT_DATE = contextvars.ContextVar("tex2markdown_document_date", default=r"\today")
 
-def set_document_date(value: str):
-    """Set the deterministic expansion for ``\today`` in this conversion context."""
-    return _DOCUMENT_DATE.set(value)
+_L2T = None
 
-def reset_document_date(token) -> None:
-    _DOCUMENT_DATE.reset(token)
 
 def convert_pylatexenc(tex: str) -> str | None:
     """Fallback conversion with pylatexenc."""
+    global _L2T
     try:
-        today_token = "ZZTEXMARKDOWNTODAYZZ"
-        tex = re.sub(r"\\today\b", today_token, tex)
-        converter = LatexNodes2Text()
-        converter._doc_date = _DOCUMENT_DATE.get()
+        if _L2T is None:
+            _L2T = LatexNodes2Text()
         with contextlib.redirect_stdout(io.StringIO()):
             with contextlib.redirect_stderr(io.StringIO()):
-                converted = converter.latex_to_text(tex)
-        return converted.replace(today_token, _DOCUMENT_DATE.get())
+                return _L2T.latex_to_text(tex)
     except Exception:
         return None
+
 
 def convert_fallback_preserving_math(tex: str, converter) -> str | None:
     """Run a fallback converter while keeping math/cite/ref source intact."""
@@ -1227,6 +1659,7 @@ def convert_fallback_preserving_math(tex: str, converter) -> str | None:
         return None
     md = finalize_converted_markdown(tex, md)
     return restore_fallback_fragments(md, placeholders)
+
 
 def protect_fallback_fragments(tex: str) -> tuple[str, dict[str, str]]:
     """Replace fragile LaTeX fragments with converter-stable placeholders."""
@@ -1242,19 +1675,30 @@ def protect_fallback_fragments(tex: str) -> tuple[str, dict[str, str]]:
 
     tex = apply_outside_protected_verbatim(
         tex,
-        lambda part: RE_FALLBACK_TABLE_BLOCK.sub(lambda match: protect(markdown_table_fragment(match.group(0))), part),
-    )
-    tex = apply_outside_protected_verbatim(tex, lambda part: RE_FALLBACK_MATH_ENV_BLOCK.sub(math_replacement, part))
-    tex = apply_outside_protected_verbatim(tex, lambda part: RE_MATH_SPAN.sub(math_replacement, part))
-    tex = apply_outside_protected_verbatim(
-        tex,
-        lambda part: RE_CITE_FAMILY_COMMAND.sub(lambda match: protect(markdown_citation(match.group(1))), part),
+        lambda part: RE_FALLBACK_TABLE_BLOCK.sub(
+            lambda match: protect(markdown_table_fragment(match.group(0))), part
+        ),
     )
     tex = apply_outside_protected_verbatim(
+        tex, lambda part: RE_FALLBACK_MATH_ENV_BLOCK.sub(math_replacement, part)
+    )
+    tex = apply_outside_protected_verbatim(
+        tex, lambda part: RE_MATH_SPAN.sub(math_replacement, part)
+    )
+    tex = apply_outside_protected_verbatim(
         tex,
-        lambda part: RE_REF_FAMILY_COMMAND.sub(lambda match: protect(markdown_reference(match.group(1))), part),
+        lambda part: RE_CITE_FAMILY_COMMAND.sub(
+            lambda match: protect(markdown_citation(match.group(1))), part
+        ),
+    )
+    tex = apply_outside_protected_verbatim(
+        tex,
+        lambda part: RE_REF_FAMILY_COMMAND.sub(
+            lambda match: protect(markdown_reference(match.group(1))), part
+        ),
     )
     return tex, placeholders
+
 
 def apply_outside_protected_verbatim(text: str, transform) -> str:
     """Apply a transform without touching protected code/example blocks."""
@@ -1265,11 +1709,12 @@ def apply_outside_protected_verbatim(text: str, transform) -> str:
     output = []
     last = 0
     for match in pattern.finditer(text):
-        output.append(transform(text[last:match.start()]))
+        output.append(transform(text[last : match.start()]))
         output.append(match.group(0))
         last = match.end()
     output.append(transform(text[last:]))
     return "".join(output)
+
 
 def markdown_math_fragment(fragment: str) -> str:
     """Keep source math readable and Markdown-safe."""
@@ -1280,10 +1725,12 @@ def markdown_math_fragment(fragment: str) -> str:
         return fragment
     return f"\n\n$$\n{clean_display_math_fragment(fragment)}\n$$\n\n"
 
+
 def markdown_table_fragment(fragment: str) -> str:
     """Preserve fallback tables as readable fenced text."""
     body = table_fragment_text(fragment)
     return f"\n\n```text\n{body}\n```\n\n" if body else ""
+
 
 def table_fragment_text(fragment: str) -> str:
     """Extract caption and cleaned rows from a LaTeX table fragment."""
@@ -1291,9 +1738,19 @@ def table_fragment_text(fragment: str) -> str:
     text = remove_latex_caption_commands(fragment)
     text = RE_LABEL_COMMAND.sub("", text)
     text = normalize_graphics_commands(text)
-    text = re.sub(r"\\(?:begin|end)\{(?:table\*?|tabular\*?|center)\}(?:\[[^\]\n]*\])?(?:\{[^{}\n]*\}){0,2}", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"\\(?:begin|end)\{(?:table\*?|tabular\*?|center)\}(?:\[[^\]\n]*\])?(?:\{[^{}\n]*\}){0,2}",
+        "\n",
+        text,
+        flags=re.IGNORECASE,
+    )
     text = re.sub(r"\\multicolumn\s*\{[^{}\n]*\}\s*\{[^{}\n]*\}\s*\{([^{}]*)\}", r"\1", text)
-    text = re.sub(r"\\(?:hline|cline|toprule|midrule|bottomrule)(?:\{[^{}\n]*\})?", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"\\(?:hline|cline|toprule|midrule|bottomrule)(?:\{[^{}\n]*\})?",
+        "\n",
+        text,
+        flags=re.IGNORECASE,
+    )
     text = re.sub(r"\\(?:bf|it|em|tt|rm|sc)\b\s*", "", text)
     text = unwrap_preconversion_text_formatting(text)
     text = text.replace(r"\%", "%")
@@ -1309,6 +1766,7 @@ def table_fragment_text(fragment: str) -> str:
     if body:
         parts.append(body)
     return "\n".join(parts).strip()
+
 
 def clean_display_math_fragment(fragment: str) -> str:
     """Remove outer display wrappers that make fallback output look raw."""
@@ -1331,19 +1789,23 @@ def clean_display_math_fragment(fragment: str) -> str:
     fragment = fragment.replace(r"\\", "\\\\")
     return fragment.strip()
 
+
 def normalize_inner_display_delimiters(fragment: str) -> str:
     """Render nested display delimiters inside display math as brackets."""
     return fragment.replace(r"\[", "[").replace(r"\]", "]")
+
 
 def markdown_citation(keys: str) -> str:
     """Preserve citation keys instead of generic fallback placeholders."""
     keys = [key.strip() for key in keys.split(",") if key.strip()]
     return "[" + "; ".join(f"@{key}" for key in keys) + "]" if keys else "[@unknown]"
 
+
 def markdown_reference(label: str) -> str:
     """Preserve reference labels instead of generic fallback placeholders."""
     label = label.strip()
     return f"[ref:{label}]" if label else "[ref:unknown]"
+
 
 def restore_fallback_fragments(text: str, placeholders: dict[str, str]) -> str:
     """Restore protected fragments after converter output cleanup."""
@@ -1365,7 +1827,9 @@ def restore_fallback_fragments(text: str, placeholders: dict[str, str]) -> str:
     text = RE_LATEX_INTERNAL_CITE.sub(lambda match: f"[@{match.group(1)}]", text)
     text = RE_AT_INTERNAL_CITE.sub(lambda match: f"[@{match.group(1)}]", text)
     text = RE_INTERNAL_CITEB_COMMAND.sub(lambda match: f"[@{match.group(1)}]", text)
-    text = RE_GENERIC_REF_TAG.sub(lambda match: f"[ref:{match.group(1)}]" if match.group(1) else "[ref]", text)
+    text = RE_GENERIC_REF_TAG.sub(
+        lambda match: f"[ref:{match.group(1)}]" if match.group(1) else "[ref]", text
+    )
     text = RE_GENERIC_CIT_TAG.sub("[citation]", text)
     text = normalize_pandoc_reference_links(text)
     text = RE_STANDALONE_EQUALS_LINE.sub("", text)
@@ -1396,14 +1860,17 @@ def restore_fallback_fragments(text: str, placeholders: dict[str, str]) -> str:
     text = RE_MULTI_BLANK.sub("\n\n", text)
     return strip_trailing_spaces(text.strip())
 
+
 def clean_citation_control_fragments(text: str) -> str:
     """Remove old citation package internals while keeping citation keys."""
     text = RE_CITE_CONTROL_SEQUENCE.sub("", text)
     return RE_CITENAME_DEF_FRAGMENT.sub("", text)
 
+
 def normalize_html_figure_blocks(text: str) -> str:
     """Convert Pandoc HTML figure blocks into plain Markdown evidence."""
     return RE_HTML_FIGURE_BLOCK.sub(html_figure_replacement, text)
+
 
 def html_figure_replacement(match: re.Match) -> str:
     """Keep useful figure text/captions while dropping HTML wrappers."""
@@ -1416,19 +1883,27 @@ def html_figure_replacement(match: re.Match) -> str:
         return f"\n\nFigure: {content}\n\n"
     return "\n\n[Figure omitted]\n\n"
 
+
 def normalize_pandoc_reference_links(text: str) -> str:
     """Collapse Pandoc reference-link attributes into stable ref markers."""
-    return RE_PANDOC_REF_LINK_ATTR.sub(lambda match: pandoc_reference_marker(match.group(2), match.group(3)), text)
+    return RE_PANDOC_REF_LINK_ATTR.sub(
+        lambda match: pandoc_reference_marker(match.group(2), match.group(3)), text
+    )
+
 
 def pandoc_reference_marker(ref_type: str, reference: str) -> str:
     """Render one Pandoc reference attribute without noisy HTML-like metadata."""
     prefix = "cite" if ref_type == "cite" else "ref"
     return f"[{prefix}:{reference.strip()}]" if reference.strip() else f"[{prefix}]"
 
+
 def clean_theorem_environment_wrappers(text: str) -> str:
     """Convert theorem-like wrappers into readable labels."""
-    text = RE_THEOREM_BEGIN.sub(lambda match: f"\n\n**{theorem_environment_label(match.group(1))}:**\n", text)
+    text = RE_THEOREM_BEGIN.sub(
+        lambda match: f"\n\n**{theorem_environment_label(match.group(1))}:**\n", text
+    )
     return RE_THEOREM_END.sub("", text)
+
 
 def theorem_environment_label(env: str) -> str:
     """Map document-local theorem environment names to readable labels."""
@@ -1451,6 +1926,7 @@ def theorem_environment_label(env: str) -> str:
     key = env.lower().rstrip("*")
     return labels.get(key, key.title())
 
+
 def fallback_placeholder_variants(token: str) -> list[str]:
     """Return exact and lossy forms emitted by text converters."""
     match = re.search(r"(\d{6})", token)
@@ -1465,13 +1941,14 @@ def fallback_placeholder_variants(token: str) -> list[str]:
             variants.add("@" * left + number + "@" * right)
     return sorted(variants, key=len, reverse=True)
 
+
 def postprocess(text: str) -> str:
     """Normalize converted text."""
-    text = postprocess_source_artifacts(text)
-    text = postprocess_structure(text)
-    return postprocess_final(text)
+    text = _postprocess_source_artifacts(text)
+    return _postprocess_structure(text)
 
-def postprocess_source_artifacts(text: str) -> str:
+
+def _postprocess_source_artifacts(text: str) -> str:
     text = normalize_pydetex_math_commands(text)
     text = text.replace("\ufffd", "")
     text = RE_CONTROL_CHARS.sub("", text)
@@ -1482,7 +1959,9 @@ def postprocess_source_artifacts(text: str) -> str:
     text = normalize_raw_figure_wrappers(text)
     text = normalize_raw_custom_display_wrappers(text)
     text = normalize_raw_center_wrappers(text)
-    text = RE_PLAIN_PICTURE_ENV.sub(lambda match: picture_environment_replacement(match.group(0)), text)
+    text = RE_PLAIN_PICTURE_ENV.sub(
+        lambda match: picture_environment_replacement(match.group(0)), text
+    )
     text = RE_PST_ENV.sub(lambda match: "\n\n[Figure omitted: PSTricks picture]\n\n", text)
     text = RE_GRAPHICS_PLACEHOLDER.sub("[Figure omitted]", text)
     text = RE_GRAPHICS_OPTION_FRAGMENT.sub("[Figure omitted]", text)
@@ -1518,13 +1997,13 @@ def postprocess_source_artifacts(text: str) -> str:
     text = normalize_flattened_table_artifacts(text)
     text = RE_REPEAT_RULE.sub("", text)
     text = RE_STANDALONE_EQUALS_LINE.sub("", text)
-    return text
-
-def postprocess_structure(text: str) -> str:
     text = clean_theorem_environment_wrappers(text)
     text = strip_artifact_lines(text)
     text = RE_MULTI_BLANK.sub("\n\n", text)
-    text = strip_trailing_spaces(text)
+    return strip_trailing_spaces(text)
+
+
+def _postprocess_structure(text: str) -> str:
     text = normalize_fallback_markup(text)
     text = normalize_surviving_latex_structure(text)
     text = normalize_math_identifier_spacing(text)
@@ -1539,9 +2018,6 @@ def postprocess_structure(text: str) -> str:
     text = normalize_markdown_code_fences(text)
     text = clean_fenced_latex_scaffolding(text)
     text = clean_fenced_code_math_leakage(text)
-    return text
-
-def postprocess_final(text: str) -> str:
     text = reflow_paragraphs(text.strip())
     text = merge_soft_wrapped_blocks(text)
     text = unwrap_formatting_argument_commands(text)
@@ -1560,19 +2036,23 @@ def postprocess_final(text: str) -> str:
     text = clean_fenced_latex_scaffolding(text)
     return clean_fenced_code_math_leakage(text)
 
+
 def normalize_pydetex_math_commands(text: str) -> str:
     """Undo PyDetex subscript-spelled TeX command names."""
     for bad, good in PYDETEX_MATH_COMMANDS.items():
         text = text.replace(bad, good)
     return text
 
+
 def normalize_flattened_table_artifacts(text: str) -> str:
     """Clean obvious tabular alignment leaks and collapsed row starts."""
     return "\n".join(normalize_flattened_table_line(line) for line in text.splitlines())
 
+
 def normalize_raw_figure_wrappers(text: str) -> str:
     """Strip raw figure wrappers once the useful placeholder/caption is present."""
     return RE_RAW_FIGURE_WRAPPER.sub(raw_figure_replacement, text)
+
 
 def normalize_raw_table_wrappers(text: str) -> str:
     """Strip raw table wrappers while preserving table body and caption."""
@@ -1580,9 +2060,12 @@ def normalize_raw_table_wrappers(text: str) -> str:
     text = re.sub(r"\\begin\s*\{\s*table\*?\s*\}(?:\[[^\]\n]*\])?", "\n", text, flags=re.IGNORECASE)
     return re.sub(r"\\end\s*\{\s*table\*?\s*\}", "\n", text, flags=re.IGNORECASE)
 
+
 def normalize_raw_custom_display_wrappers(text: str) -> str:
     """Clean custom display wrappers used for query/result examples."""
-    text = RE_RAW_RESULTS_BLOCK.sub(lambda match: "\n\nResults:\n" + clean_custom_results_body(match.group(1)) + "\n", text)
+    text = RE_RAW_RESULTS_BLOCK.sub(
+        lambda match: "\n\nResults:\n" + clean_custom_results_body(match.group(1)) + "\n", text
+    )
     text = replace_balanced_caption_commands(text)
     replacements = {
         r"\\begin\{query\}": "\n\nQuery:\n",
@@ -1594,7 +2077,10 @@ def normalize_raw_custom_display_wrappers(text: str) -> str:
     }
     for old, new in replacements.items():
         text = re.sub(old, new, text, flags=re.IGNORECASE)
-    return re.sub(r"\\begin\{results\}(?:\{[^{}\n]*\})?", "\n\nResults:\n", text, flags=re.IGNORECASE).replace(r"\end{results}", "\n")
+    return re.sub(
+        r"\\begin\{results\}(?:\{[^{}\n]*\})?", "\n\nResults:\n", text, flags=re.IGNORECASE
+    ).replace(r"\end{results}", "\n")
+
 
 def clean_custom_results_body(body: str) -> str:
     """Clean custom query-result rows without dropping cell values."""
@@ -1605,6 +2091,7 @@ def clean_custom_results_body(body: str) -> str:
     lines = [line.strip(" |") for line in body.splitlines()]
     return "\n".join(line for line in lines if line).strip()
 
+
 def replace_balanced_caption_commands(text: str) -> str:
     """Render surviving balanced captions as readable text."""
     while True:
@@ -1613,11 +2100,12 @@ def replace_balanced_caption_commands(text: str) -> str:
             return text
         close = find_matching_brace(text, match.end() - 1)
         if close == -1:
-            text = text[:match.start()] + "Caption: " + text[match.end():]
+            text = text[: match.start()] + "Caption: " + text[match.end() :]
             continue
-        caption = clean_linguistic_text(text[match.end():close])
+        caption = clean_linguistic_text(text[match.end() : close])
         replacement = f"\n\nCaption: {caption}\n\n" if caption else "\n\n"
-        text = text[:match.start()] + replacement + text[close + 1:]
+        text = text[: match.start()] + replacement + text[close + 1 :]
+
 
 def normalize_raw_center_wrappers(text: str) -> str:
     """Remove centering wrappers while preserving formulas/examples inside."""
@@ -1625,9 +2113,12 @@ def normalize_raw_center_wrappers(text: str) -> str:
     previous = None
     while previous != text:
         previous = text
-        text = RE_RAW_CENTER_WRAPPER.sub(lambda match: "\n\n" + match.group(1).strip() + "\n\n", text)
+        text = RE_RAW_CENTER_WRAPPER.sub(
+            lambda match: "\n\n" + match.group(1).strip() + "\n\n", text
+        )
     text = re.sub(r"\\(?:begin|end)\{center\}", "", text, flags=re.IGNORECASE)
     return text.replace(r"\begincenter", "").replace(r"\endcenter", "")
+
 
 def unwrap_centerline_commands(text: str) -> str:
     """Remove old centerline wrappers while preserving their content."""
@@ -1635,9 +2126,10 @@ def unwrap_centerline_commands(text: str) -> str:
         close = find_matching_brace(text, match.end() - 1)
         if close == -1:
             continue
-        body = text[match.end():close].strip()
-        text = text[:match.start()] + f"\n\n{body}\n\n" + text[close + 1:]
+        body = text[match.end() : close].strip()
+        text = text[: match.start()] + f"\n\n{body}\n\n" + text[close + 1 :]
     return text
+
 
 def raw_table_replacement(match: re.Match) -> str:
     """Keep table evidence while removing float/layout wrappers."""
@@ -1646,18 +2138,30 @@ def raw_table_replacement(match: re.Match) -> str:
     body = remove_latex_caption_commands(body)
     body = RE_LABEL_COMMAND.sub("", body)
     body = normalize_raw_center_wrappers(body)
-    body = re.sub(r"\\begin\{minipage\}(?:\[[^\]\n]*\])?(?:\{[^{}\n]*\})?", "\n", body, flags=re.IGNORECASE)
+    body = re.sub(
+        r"\\begin\{minipage\}(?:\[[^\]\n]*\])?(?:\{[^{}\n]*\})?", "\n", body, flags=re.IGNORECASE
+    )
     body = re.sub(r"\\end\{minipage\}", "\n", body, flags=re.IGNORECASE)
     body = re.sub(r"\\(?:centering|footnotesize|scriptsize|small|normalsize)\b", " ", body)
     body = re.sub(r"\\(?:vspace|hspace)\*?\s*\{[^{}\n]*\}", " ", body)
     body = re.sub(r"\\multicolumn\s*\{[^{}\n]*\}\s*\{[^{}\n]*\}\s*\{([^{}\n]*)\}", r"\1", body)
-    body = re.sub(r"\\(?:hline|cline|toprule|midrule|bottomrule)(?:\{[^{}\n]*\})?", "\n", body, flags=re.IGNORECASE)
+    body = re.sub(
+        r"\\(?:hline|cline|toprule|midrule|bottomrule)(?:\{[^{}\n]*\})?",
+        "\n",
+        body,
+        flags=re.IGNORECASE,
+    )
     body = body.replace(r"\fbox", "")
-    body = "\n".join(line.strip() for line in body.splitlines() if line.strip() and line.strip() not in {"{", "}"})
+    body = "\n".join(
+        line.strip()
+        for line in body.splitlines()
+        if line.strip() and line.strip() not in {"{", "}"}
+    )
     parts = [body]
     if caption:
         parts.append(f"Table: {caption}")
     return "\n\n" + "\n".join(part for part in parts if part).strip() + "\n\n"
+
 
 def raw_figure_replacement(match: re.Match) -> str:
     """Keep figure placeholders and captions while removing LaTeX wrappers."""
@@ -1673,6 +2177,7 @@ def raw_figure_replacement(match: re.Match) -> str:
         parts.append(f"Figure: {caption}")
     return "\n\n" + "\n".join(part for part in parts if part).strip() + "\n\n"
 
+
 def normalize_accidental_hash_headings(text: str) -> str:
     """Escape example/table lines that Markdown would misread as headings."""
     output = []
@@ -1684,11 +2189,13 @@ def normalize_accidental_hash_headings(text: str) -> str:
             output.append(line)
     return "\n".join(output)
 
+
 def clean_stripped_fallback_placeholders(text: str) -> str:
     """Remove fallback sentinels whose leading marker was stripped by a converter."""
     text = RE_LOSSY_FALLBACK_PLACEHOLDER.sub("", text)
     text = RE_STRIPPED_FALLBACK_PLACEHOLDER.sub("", text)
     return re.sub(r" {2,}", " ", text)
+
 
 def restore_protected_sentinels(text: str) -> str:
     """Decode protected verbatim sentinels that bypassed marker restoration."""
@@ -1697,6 +2204,7 @@ def restore_protected_sentinels(text: str) -> str:
         .replace(PERCENT_SENTINEL, "%")
         .replace(NEWLINE_SENTINEL, "\n")
     )
+
 
 def normalize_flattened_table_line(line: str) -> str:
     """Normalize one table-like line without changing ordinary prose."""
@@ -1713,21 +2221,26 @@ def normalize_flattened_table_line(line: str) -> str:
     line = re.sub(r"(?<=[A-Za-z])\s+(?=d\()", "\n", line)
     return line
 
+
 def unwrap_formatting_argument_commands(text: str) -> str:
     """Drop formatting-only wrappers while preserving their text/math body."""
     text = RE_XSPACE_COMMAND.sub(" ", text)
-    text = RE_ESCAPED_ENSUREMATH_COMMAND.sub(lambda match: clean_escaped_ensuremath_body(match.group(1)), text)
+    text = RE_ESCAPED_ENSUREMATH_COMMAND.sub(
+        lambda match: clean_escaped_ensuremath_body(match.group(1)), text
+    )
     previous = None
     while previous != text:
         previous = text
         text = unwrap_argument_command_pattern(text, RE_FORMATTING_ARGUMENT_COMMAND, block=False)
     return text
 
+
 def clean_escaped_ensuremath_body(body: str) -> str:
     """Clean malformed ensuremath bodies closed as escaped braces."""
     body = body.replace(r"\ ", " ")
     body = re.sub(r"\\(?=[`',;:.])", "", body)
     return body.strip()
+
 
 def normalize_markdown_display_blocks(text: str) -> str:
     """Clean display-math internals without touching inline prose math."""
@@ -1736,13 +2249,16 @@ def normalize_markdown_display_blocks(text: str) -> str:
         text,
     )
 
+
 def normalize_orphan_display_math_wrappers(text: str) -> str:
     """Remove stray inline dollar wrappers around restored display math."""
     return RE_ORPHAN_WRAPPED_DISPLAY_MATH.sub(lambda match: match.group(1), text)
 
+
 def normalize_single_column_array_displays(text: str) -> str:
     """Simplify one-column display arrays while preserving line breaks."""
     return RE_SINGLE_COLUMN_ARRAY_DISPLAY.sub(single_column_array_display_replacement, text)
+
 
 def single_column_array_display_replacement(match: re.Match) -> str:
     """Render a ``{c}`` array display as plain multiline display math."""
@@ -1750,6 +2266,7 @@ def single_column_array_display_replacement(match: re.Match) -> str:
     lines = [clean_single_column_array_line(line) for line in re.split(r"\\\\", body)]
     lines = [line for line in lines if line]
     return "\n\n$$\n" + "\n".join(lines) + "\n$$\n\n" if lines else ""
+
 
 def clean_single_column_array_line(line: str) -> str:
     """Clean one line from a single-column array without erasing math."""
@@ -1759,6 +2276,7 @@ def clean_single_column_array_line(line: str) -> str:
     line = line.replace(r"\!", "")
     line = re.sub(r"\s+", " ", line)
     return line.strip()
+
 
 def normalize_tex_display_blocks(text: str) -> str:
     """Convert surviving TeX display delimiters into Markdown display math."""
@@ -1771,12 +2289,15 @@ def normalize_tex_display_blocks(text: str) -> str:
 
     return RE_TEX_DISPLAY_MATH_BLOCK.sub(replacement, text)
 
+
 def normalize_orphan_escaped_brackets(text: str) -> str:
     """Turn leftover display delimiters into literal brackets."""
     return text.replace(r"\[", "[").replace(r"\]", "]")
 
+
 def clean_fenced_code_math_leakage(text: str) -> str:
     """Remove display-math wrapper leakage from preserved text examples."""
+
     def replacement(match: re.Match) -> str:
         block = match.group(0)
         if "$$" not in block and r"\]" not in block and r"\[" not in block:
@@ -1787,22 +2308,45 @@ def clean_fenced_code_math_leakage(text: str) -> str:
 
     return RE_FENCED_CODE_BLOCK.sub(replacement, text)
 
+
 def clean_fenced_latex_scaffolding(text: str) -> str:
     """Remove LaTeX drawing/layout scaffolding inside preserved figure blocks."""
     return RE_FENCED_CODE_BLOCK.sub(clean_one_fenced_latex_block, text)
 
+
 def clean_one_fenced_latex_block(match: re.Match) -> str:
     """Clean one fenced block while preserving its evidence text."""
     block = match.group(0)
-    if not any(token in block for token in (
-        r"\begincenter", r"\endcenter", r"\setlength", r"\begingroup",
-        r"\psfig", r"\epsfig", r"\epsfbox", r"\epsffile",
-        r"\includegraphics", r"\pstree", r"\beginavm", r"\input",
-        r"\hline", r"\multicolumn", r"\noalign", r"\hrule",
-        r"\futurelet", r"\caption", r"\rule", r"\hfill",
-        r"\hspace", r"\vspace", r"\newcommand",
-        "PSTree:", "AVM span:",
-    )):
+    if not any(
+        token in block
+        for token in (
+            r"\begincenter",
+            r"\endcenter",
+            r"\setlength",
+            r"\begingroup",
+            r"\psfig",
+            r"\epsfig",
+            r"\epsfbox",
+            r"\epsffile",
+            r"\includegraphics",
+            r"\pstree",
+            r"\beginavm",
+            r"\input",
+            r"\hline",
+            r"\multicolumn",
+            r"\noalign",
+            r"\hrule",
+            r"\futurelet",
+            r"\caption",
+            r"\rule",
+            r"\hfill",
+            r"\hspace",
+            r"\vspace",
+            r"\newcommand",
+            "PSTree:",
+            "AVM span:",
+        )
+    ):
         return block
     block = clean_fenced_caption_blocks(block)
     lines = block.splitlines()
@@ -1817,6 +2361,7 @@ def clean_one_fenced_latex_block(match: re.Match) -> str:
     cleaned.append(lines[-1])
     return "\n".join(cleaned)
 
+
 def clean_fenced_caption_blocks(block: str) -> str:
     """Normalize multiline caption commands before line-oriented cleanup."""
     return re.sub(
@@ -1826,6 +2371,7 @@ def clean_fenced_caption_blocks(block: str) -> str:
         flags=re.DOTALL,
     )
 
+
 def clean_fenced_latex_line(line: str) -> str | None:
     """Clean one line inside a preserved fenced figure/code block."""
     stripped = line.strip()
@@ -1834,21 +2380,31 @@ def clean_fenced_latex_line(line: str) -> str | None:
     if stripped in {r"\\", "\\"}:
         return None
     drop_prefixes = (
-        r"\begincenter", r"\endcenter", r"\nopagebreak", r"\begingroup",
-        r"\endgroup", r"\makeatletter", r"\makeatother",
+        r"\begincenter",
+        r"\endcenter",
+        r"\nopagebreak",
+        r"\begingroup",
+        r"\endgroup",
+        r"\makeatletter",
+        r"\makeatother",
     )
     if stripped.startswith(drop_prefixes):
         return None
-    if re.match(r"\\(?:setlength|renewcommand|gdef|reset@font|fontfamily|fontseries|fontshape|fontsize|selectfont|ifx|fi|sbox|newsavebox)\b", stripped):
-        return None
-    if (
-        re.match(r"\\(?:e?psfig(?:file)?|epsfbox|epsffile|includegraphics)\b|\\psfig(?=\S)|\\input\S+\.(?:ps|eps|eepic|pstex|fig|pdf|png|jpg|jpeg)", stripped)
-        or re.search(r"\\(?:hbox)?\\?(?:e?psfig|psfig|epsfbox|epsffile|includegraphics)\b", stripped)
+    if re.match(
+        r"\\(?:setlength|renewcommand|gdef|reset@font|fontfamily|fontseries|fontshape|fontsize|selectfont|ifx|fi|sbox|newsavebox)\b",
+        stripped,
     ):
+        return None
+    if re.match(
+        r"\\(?:e?psfig(?:file)?|epsfbox|epsffile|includegraphics)\b|\\psfig(?=\S)|\\input\S+\.(?:ps|eps|eepic|pstex|fig|pdf|png|jpg|jpeg)",
+        stripped,
+    ) or re.search(r"\\(?:hbox)?\\?(?:e?psfig|psfig|epsfbox|epsffile|includegraphics)\b", stripped):
         placeholder = figure_placeholder_from_fenced_line(stripped)
         if placeholder:
             return placeholder
-        cleaned = re.sub(r"\\hbox\s*\\?(?:e?psfig|psfig|epsfbox|epsffile|includegraphics)\b", "", line)
+        cleaned = re.sub(
+            r"\\hbox\s*\\?(?:e?psfig|psfig|epsfbox|epsffile|includegraphics)\b", "", line
+        )
         cleaned = re.sub(
             r"\\(?:e?psfig|psfig|epsfbox|epsffile|includegraphics)\b"
             r"(?:\s*\[[^\]\n]*\])?(?:\s*\{[^{}\n]*\}|[A-Za-z0-9_./:-]+\.(?:ps|eps|pdf|png|jpg|jpeg))?",
@@ -1875,6 +2431,7 @@ def clean_fenced_latex_line(line: str) -> str | None:
     line = clean_fenced_tree_avm_text(line)
     return line
 
+
 def clean_fenced_caption_text(line: str) -> str | None:
     """Render caption commands inside preserved evidence blocks."""
     if r"\caption" not in line:
@@ -1888,9 +2445,12 @@ def clean_fenced_caption_text(line: str) -> str | None:
     line = re.sub(r"[ \t]+", " ", line).strip()
     return line or None
 
+
 def clean_fenced_layout_text(line: str) -> str | None:
     """Remove drawing-only layout commands inside preserved evidence blocks."""
-    if not any(token in line for token in (r"\rule", r"\hfill", r"\hspace", r"\vspace", r"\newcommand")):
+    if not any(
+        token in line for token in (r"\rule", r"\hfill", r"\hspace", r"\vspace", r"\newcommand")
+    ):
         return line
     line = re.sub(r"\\newcommand\\[A-Za-z]+\s*", " ", line)
     line = re.sub(r"\\rule(\[ref:[^\]\n]+\])", r"\1", line)
@@ -1899,17 +2459,35 @@ def clean_fenced_layout_text(line: str) -> str | None:
     line = re.sub(r"\\rule(?:\[[^\]\n]*\])?(?:\{[^{}\n]*\}){2}", " ", line)
     dimension = r"[-+]?\d*(?:\.\d+)?\s*(?:ex|em|pt|cm|mm|in)"
     rule_body = rf"(?:\\?[A-Za-z]+|{dimension})\s*{dimension}([A-Za-z0-9_()]+)?"
-    line = re.sub(rf"\\rule(?:\[[^\]\n]*\])?{rule_body}", lambda match: f" {match.group(1) or ''} ", line)
-    line = re.sub(rf"(?<!\\)\brule(?:\[[^\]\n]*\])?{rule_body}", lambda match: f" {match.group(1) or ''} ", line)
+    line = re.sub(
+        rf"\\rule(?:\[[^\]\n]*\])?{rule_body}", lambda match: f" {match.group(1) or ''} ", line
+    )
+    line = re.sub(
+        rf"(?<!\\)\brule(?:\[[^\]\n]*\])?{rule_body}",
+        lambda match: f" {match.group(1) or ''} ",
+        line,
+    )
     line = re.sub(r"[ \t]+", " ", line).strip()
     return line or None
 
+
 def clean_fenced_table_text(line: str) -> str | None:
     """Clean table layout commands inside preserved evidence blocks."""
-    if not any(token in line for token in (
-        r"\hline", "hline", r"\multicolumn", r"\cline", r"\sc",
-        r"\bf", r"\em", r"\noalign", r"\hrule", r"\futurelet",
-    )):
+    if not any(
+        token in line
+        for token in (
+            r"\hline",
+            "hline",
+            r"\multicolumn",
+            r"\cline",
+            r"\sc",
+            r"\bf",
+            r"\em",
+            r"\noalign",
+            r"\hrule",
+            r"\futurelet",
+        )
+    ):
         return line
     line = re.sub(r"\\noalign\\ifnum0=`\\fi", " ", line)
     line = re.sub(r"\\(?:hrule|arrayrulewidth|futurelet|@height|@xhline|@tempa)\b", " ", line)
@@ -1928,6 +2506,7 @@ def clean_fenced_table_text(line: str) -> str | None:
     line = line.replace(r"\ ", " ")
     line = re.sub(r"[ \t]+", " ", line).strip()
     return line or None
+
 
 def clean_fenced_tree_avm_text(line: str) -> str:
     """Make preserved PSTree/AVM figure text scannable without rendering it."""
@@ -1949,6 +2528,7 @@ def clean_fenced_tree_avm_text(line: str) -> str:
     line = re.sub(r" *\n *", "\n", line)
     return line.strip()
 
+
 def figure_placeholder_from_fenced_line(line: str) -> str | None:
     """Convert fenced graphics/include commands into concise placeholders."""
     match = re.search(
@@ -1958,16 +2538,20 @@ def figure_placeholder_from_fenced_line(line: str) -> str | None:
         line,
     )
     if not match:
-        match = re.search(r"\\input([A-Za-z0-9_./:-]+\.(?:ps|eps|eepic|pstex|fig|pdf|png|jpg|jpeg))", line)
+        match = re.search(
+            r"\\input([A-Za-z0-9_./:-]+\.(?:ps|eps|eepic|pstex|fig|pdf|png|jpg|jpeg))", line
+        )
     if not match:
         return None
     return f"[Figure omitted: {match.group(1)}]"
+
 
 def restore_inline_verbatim_blocks(text: str) -> str:
     """Restore protected code markers even if a converter inlined them."""
     if VERBATIM_BEGIN not in text:
         return text
     return RE_INLINE_VERBATIM_BLOCK.sub(lambda match: inline_code_block(match.group(1)), text)
+
 
 def inline_code_block(content: str) -> str:
     """Decode one inline protected verbatim block into a fenced block."""
@@ -1979,6 +2563,7 @@ def inline_code_block(content: str) -> str:
     )
     return f"\n\n```text\n{content}\n```\n\n" if content else ""
 
+
 def clean_math_source_leakage(text: str) -> str:
     """Remove TeX diagnostics/wrappers that survive inside converted math."""
     text = RE_TEX_ERROR_MESSAGE.sub("", text)
@@ -1987,12 +2572,15 @@ def clean_math_source_leakage(text: str) -> str:
     text = RE_LATEX_INTERNAL_CITE.sub(lambda match: f"[@{match.group(1)}]", text)
     text = RE_AT_INTERNAL_CITE.sub(lambda match: f"[@{match.group(1)}]", text)
     text = RE_CITE_COMMAND.sub(lambda match: f"[{match.group(1) or match.group(2)}]", text)
-    text = RE_GENERIC_REF_TAG.sub(lambda match: f"[ref:{match.group(1)}]" if match.group(1) else "[ref]", text)
+    text = RE_GENERIC_REF_TAG.sub(
+        lambda match: f"[ref:{match.group(1)}]" if match.group(1) else "[ref]", text
+    )
     text = RE_GENERIC_CIT_TAG.sub("[citation]", text)
     text = RE_ITEM_COMMAND.sub("\n- ", text)
     text = RE_MATHRM_WORD_COMMAND.sub(lambda match: match.group(1), text)
     text = RE_TEX_SPACING_COMMAND.sub(" ", text)
     return RE_MATH_LABEL_COMMAND.sub("", text)
+
 
 def strip_artifact_lines(text: str) -> str:
     """Drop standalone style tokens and coalesce picture-coordinate dumps."""
@@ -2010,17 +2598,28 @@ def strip_artifact_lines(text: str) -> str:
         output.append(line)
     return "\n".join(output)
 
+
 def is_drawing_artifact_line(line: str) -> bool:
     """Detect raw drawing-program lines from figures."""
     stripped = line.strip()
     if not stripped:
         return False
     drawing_tokens = (
-        "/Ellipse", "/Ligne", "/Arrow", " gsave ", " setgray",
-        "\\setplotarea", "\\axis ", "\\!ifnextchar", "\\plot ",
-        "\\setbox\\!picbox", "\\beginpicture", "\\endpicture",
+        "/Ellipse",
+        "/Ligne",
+        "/Arrow",
+        " gsave ",
+        " setgray",
+        "\\setplotarea",
+        "\\axis ",
+        "\\!ifnextchar",
+        "\\plot ",
+        "\\setbox\\!picbox",
+        "\\beginpicture",
+        "\\endpicture",
     )
     return any(token in stripped for token in drawing_tokens)
+
 
 def is_picture_coordinate_line(line: str) -> bool:
     """Detect lines that are mostly LaTeX picture coordinate/font dumps."""
@@ -2033,12 +2632,24 @@ def is_picture_coordinate_line(line: str) -> bool:
     if coords >= 2 and is_mostly_picture_coordinates(stripped):
         return True
     if coords >= 1:
-        picture_tokens = ["[lb]", "[rb]", "[lt]", "[rt]", "[b]", "[t]", "cmr", "rm", "<span", "</span>"]
+        picture_tokens = [
+            "[lb]",
+            "[rb]",
+            "[lt]",
+            "[rt]",
+            "[b]",
+            "[t]",
+            "cmr",
+            "rm",
+            "<span",
+            "</span>",
+        ]
         if coords >= 2 and any(token in stripped for token in picture_tokens):
             return True
     if coords >= 1 and len(stripped) > 80:
         return any(token in stripped for token in picture_tokens)
     return False
+
 
 def is_mostly_picture_coordinates(line: str) -> bool:
     """Return true when non-coordinate residue is diagram syntax, not prose."""
@@ -2049,9 +2660,11 @@ def is_mostly_picture_coordinates(line: str) -> bool:
         return False
     return len(residue.strip()) <= max(20, len(line) // 3)
 
+
 def normalize_fallback_markup(text: str) -> str:
     """Promote fallback converter section/paragraph markers to Markdown."""
     return "\n".join(normalize_fallback_line(line) for line in text.splitlines())
+
 
 def normalize_surviving_latex_structure(text: str) -> str:
     """Convert raw structural LaTeX left by fallback converters."""
@@ -2078,12 +2691,17 @@ def normalize_surviving_latex_structure(text: str) -> str:
     text = RE_RAW_OLD_LIST_ENV.sub("\n", text)
     text = RE_RAW_BEGIN_LIST_ENV.sub("\n", text)
     text = RE_RAW_END_LIST_ENV.sub("\n", text)
-    text = RE_ITEM_ESCAPED_LABEL_COMMAND.sub(lambda match: f"\n- {clean_linguistic_text(match.group(1))}: ", text)
-    text = RE_ITEM_LABEL_COMMAND.sub(lambda match: f"\n- {clean_linguistic_text(match.group(1))}: ", text)
+    text = RE_ITEM_ESCAPED_LABEL_COMMAND.sub(
+        lambda match: f"\n- {clean_linguistic_text(match.group(1))}: ", text
+    )
+    text = RE_ITEM_LABEL_COMMAND.sub(
+        lambda match: f"\n- {clean_linguistic_text(match.group(1))}: ", text
+    )
     text = RE_ITEM_COMMAND.sub("\n- ", text)
     text = RE_CITE_FAMILY_COMMAND.sub(lambda match: markdown_citation(match.group(1)), text)
     text = RE_REF_FAMILY_COMMAND.sub(lambda match: markdown_reference(match.group(1)), text)
     return text
+
 
 def normalize_quantum_gate_macros(text: str) -> str:
     """Render old local quantum-circuit picture macros as readable labels."""
@@ -2091,9 +2709,11 @@ def normalize_quantum_gate_macros(text: str) -> str:
         text = re.sub(rf"\\{name}(?![A-Za-z])", f"[Quantum gate: {label}]", text)
     return text
 
+
 def normalize_quantum_circuit_arrays(text: str) -> str:
     """Collapse display arrays made only of quantum gate labels."""
     return RE_QUANTUM_CIRCUIT_ARRAY_BLOCK.sub(quantum_circuit_array_replacement, text)
+
 
 def quantum_circuit_array_replacement(match: re.Match) -> str:
     """Render a gate-only array as a concise circuit placeholder."""
@@ -2107,14 +2727,20 @@ def quantum_circuit_array_replacement(match: re.Match) -> str:
         return match.group(0)
     return "\n\n[Quantum circuit: " + "; ".join(labels) + "]\n\n"
 
+
 def normalize_math_identifier_spacing(text: str) -> str:
     """Repair fallback output that glues prose words to math identifiers."""
     return apply_outside_fenced_code(text, normalize_math_identifier_spacing_part)
 
+
 def normalize_math_identifier_spacing_part(text: str) -> str:
     """Apply conservative prose/math spacing repairs to normal text."""
-    prefix_pattern = "|".join(re.escape(prefix) for prefix in sorted(MATH_TEXT_PREFIXES, key=len, reverse=True))
-    suffix_pattern = "|".join(re.escape(suffix) for suffix in sorted(MATH_TEXT_SUFFIXES, key=len, reverse=True))
+    prefix_pattern = "|".join(
+        re.escape(prefix) for prefix in sorted(MATH_TEXT_PREFIXES, key=len, reverse=True)
+    )
+    suffix_pattern = "|".join(
+        re.escape(suffix) for suffix in sorted(MATH_TEXT_SUFFIXES, key=len, reverse=True)
+    )
     text = re.sub(
         rf"\b({prefix_pattern})({MATH_IDENTIFIER_TOKEN})((?:{suffix_pattern})\b|[∈=,.;:)\\[→≤≥<>^]|\s)",
         lambda match: f"{match.group(1)} {match.group(2)}{math_spacing_delimiter(match.group(3))}",
@@ -2137,6 +2763,7 @@ def normalize_math_identifier_spacing_part(text: str) -> str:
     text = re.sub(r"(?<=[)∞ℤℝℂ])(?=(?:and|are|be|has|is|of|tend|tends|the|to|with)\b)", " ", text)
     return text
 
+
 def math_spacing_delimiter(delimiter: str) -> str:
     """Keep word suffixes separated while leaving punctuation tight."""
     if delimiter.isspace():
@@ -2145,20 +2772,23 @@ def math_spacing_delimiter(delimiter: str) -> str:
         return " " + delimiter
     return delimiter
 
+
 def apply_outside_fenced_code(text: str, transform) -> str:
     """Apply a transform without touching Markdown fenced code blocks."""
     output = []
     last = 0
     for match in RE_FENCED_CODE_BLOCK.finditer(text):
-        output.append(transform(text[last:match.start()]))
+        output.append(transform(text[last : match.start()]))
         output.append(match.group(0))
         last = match.end()
     output.append(transform(text[last:]))
     return "".join(output)
 
+
 def normalize_recovered_theory_names(text: str) -> str:
     """Clean wording around recovered theory/system-name macros."""
     return re.sub(r"\bwe\s+to\s+introduce\s+Dachs\b", "we introduce Dachs", text)
+
 
 def normalize_raw_graphics_scaffolding(text: str) -> str:
     """Replace raw external-graphics scaffolding that escaped figure cleanup."""
@@ -2168,7 +2798,9 @@ def normalize_raw_graphics_scaffolding(text: str) -> str:
         text,
         flags=re.IGNORECASE,
     )
-    text = re.sub(r"\\pstree(?:\[[^\]\n]*\])?\.?", "[Tree diagram omitted].", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"\\pstree(?:\[[^\]\n]*\])?\.?", "[Tree diagram omitted].", text, flags=re.IGNORECASE
+    )
     text = re.sub(
         r"\\begincenter\s*\\(?:e?psfigfile)\s*=\s*([A-Za-z0-9_./:-]+\.(?:ps|eps|pdf|png|jpg|jpeg))[^\n]*\s*\\endcenter",
         lambda match: f"\n\n[Figure omitted: {match.group(1)}]\n\n",
@@ -2183,29 +2815,57 @@ def normalize_raw_graphics_scaffolding(text: str) -> str:
     )
     return text.replace(r"\begincenter", "").replace(r"\endcenter", "")
 
+
 def normalize_raw_list_and_bibliography_wrappers(text: str) -> str:
     """Remove raw list/bibliography wrappers after item contents survive."""
     text = drop_balanced_multiarg_command(text, r"\addcontentsline", 3)
-    text = re.sub(r"\\(?:begin|end)\s*\{\s*(?:enumerate|itemize|description)\s*\}", "\n", text, flags=re.IGNORECASE)
-    text = re.sub(r"\\begin\s*\{\s*thebibliography\s*\}\s*\{[^{}\n]*\}", "\n\n# References\n\n", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"\\(?:begin|end)\s*\{\s*(?:enumerate|itemize|description)\s*\}",
+        "\n",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\\begin\s*\{\s*thebibliography\s*\}\s*\{[^{}\n]*\}",
+        "\n\n# References\n\n",
+        text,
+        flags=re.IGNORECASE,
+    )
     text = re.sub(r"\\end\s*\{\s*thebibliography\s*\}", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"\\bibitem\s*(?:\[[^\]\n]*\])?\s*\{([^{}\n]*)\}", lambda match: f"\n- [{match.group(1)}] ", text)
+    text = re.sub(
+        r"\\bibitem\s*(?:\[[^\]\n]*\])?\s*\{([^{}\n]*)\}",
+        lambda match: f"\n- [{match.group(1)}] ",
+        text,
+    )
     text = re.sub(r"\\newblock\b", " ", text)
     return text
 
+
 def normalize_raw_layout_commands(text: str) -> str:
     """Drop layout commands that survive outside useful math/source."""
-    text = re.sub(r"\\(?:begin|end)\s*\{\s*flush(?:right|left)\s*\}", "\n", text, flags=re.IGNORECASE)
-    text = re.sub(r"\\begin\s*\{\s*minipage\s*\}(?:\[[^\]\n]*\])?\s*\{[^{}\n]*\}", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"\\(?:begin|end)\s*\{\s*flush(?:right|left)\s*\}", "\n", text, flags=re.IGNORECASE
+    )
+    text = re.sub(
+        r"\\begin\s*\{\s*minipage\s*\}(?:\[[^\]\n]*\])?\s*\{[^{}\n]*\}",
+        "\n",
+        text,
+        flags=re.IGNORECASE,
+    )
     text = re.sub(r"\\end\s*\{\s*minipage\s*\}", "\n", text, flags=re.IGNORECASE)
     text = re.sub(r"\\noalign\s*\{[^{}\n]*\}", " ", text)
     text = re.sub(r"\\(?:vfill|vfil|protect|smallskip|medskip|bigskip)\b", " ", text)
     text = re.sub(r"\\(?:vspace|hspace)\*?\s*\{[^{}\n]*\}", " ", text)
     text = re.sub(r"\\rule\s*\{[^{}\n]*\}\s*\{[^{}\n]*\}", " ", text)
     text = re.sub(r"\\(?:vspace|hspace)\*?\s*[-.\d]+(?:ex|em|pt|cm|mm|in)", " ", text)
-    text = re.sub(r"\\rule\s*(?:\\?[A-Za-z]+|[-.\d]+(?:ex|em|pt|cm|mm|in))\s*[-.]?\d*(?:\.\d+)?(?:ex|em|pt|cm|mm|in)", " ", text)
+    text = re.sub(
+        r"\\rule\s*(?:\\?[A-Za-z]+|[-.\d]+(?:ex|em|pt|cm|mm|in))\s*[-.]?\d*(?:\.\d+)?(?:ex|em|pt|cm|mm|in)",
+        " ",
+        text,
+    )
     text = re.sub(r"\bhspace\*?[-.]?\d+(?:\.\d+)?(?:ex|em|pt|cm|mm|in)\b", " ", text)
     return text
+
 
 def drop_balanced_multiarg_command(text: str, command: str, arg_count: int) -> str:
     """Drop a command with balanced braced arguments."""
@@ -2214,8 +2874,9 @@ def drop_balanced_multiarg_command(text: str, command: str, arg_count: int) -> s
         parsed = read_braced_args(text, match.end(), arg_count)
         if parsed:
             _, end = parsed
-            text = text[:match.start()] + " " + text[end:]
+            text = text[: match.start()] + " " + text[end:]
     return text
+
 
 def normalize_manual_numbered_headings(text: str) -> str:
     """Promote old manual numbered headings embedded in fallback prose."""
@@ -2230,11 +2891,15 @@ def normalize_manual_numbered_headings(text: str) -> str:
         text,
     )
 
+
 def normalize_report_style_headings(text: str) -> str:
     """Promote report-style PART/CHAPTER markers emitted by fallbacks."""
     text = re.sub(
         r"(?m)^\s*PART:\s+(.{1,120}?)\s+CHAPTER:\s+(.{1,120})\s*$",
-        lambda match: f"\n\n# Part: {clean_fallback_heading(match.group(1))}\n\n# {clean_fallback_heading(match.group(2))}\n",
+        lambda match: (
+            f"\n\n# Part: {clean_fallback_heading(match.group(1))}\n\n"
+            f"# {clean_fallback_heading(match.group(2))}\n"
+        ),
         text,
     )
     text = re.sub(
@@ -2248,6 +2913,7 @@ def normalize_report_style_headings(text: str) -> str:
         text,
     )
 
+
 def normalize_surviving_semantic_macros(text: str) -> str:
     """Render common formal macros that survive conversion."""
     text = replace_two_arg_macro(text, "elem", lambda args: f"{args[0]} in {args[1]}")
@@ -2257,7 +2923,9 @@ def normalize_surviving_semantic_macros(text: str) -> str:
     text = replace_one_arg_macro(text, "Mean", lambda arg: f"Mean({arg})")
     text = replace_one_arg_macro(text, "BE", lambda arg: f"BE({arg})" if arg else "BE")
     text = replace_one_arg_macro(text, "SynR", lambda arg: f"SynR({arg})" if arg else "SynR")
-    text = replace_one_arg_macro(text, "SemKats", lambda arg: f"SemKats({arg})" if arg else "SemKats")
+    text = replace_one_arg_macro(
+        text, "SemKats", lambda arg: f"SemKats({arg})" if arg else "SemKats"
+    )
     replacements = {
         r"\Ld": "L_D",
         r"\SAT": "models",
@@ -2276,6 +2944,7 @@ def normalize_surviving_semantic_macros(text: str) -> str:
     text = re.sub(r"\\endarray", "\n", text)
     return text
 
+
 def normalize_xy_matrix_macros(text: str) -> str:
     """Render inline XY-pic matrices as explicit diagram placeholders."""
     pattern = re.compile(r"\\xymatrix(?:@[A-Za-z0-9]+)?\s*\{")
@@ -2283,25 +2952,35 @@ def normalize_xy_matrix_macros(text: str) -> str:
         close = find_matching_brace(text, match.end() - 1)
         if close == -1:
             continue
-        body = " ".join(text[match.end():close].split())
+        body = " ".join(text[match.end() : close].split())
         replacement = f"[XY matrix: {body}]" if body else "[XY matrix]"
-        text = text[:match.start()] + replacement + text[close + 1:]
+        text = text[: match.start()] + replacement + text[close + 1 :]
     return re.sub(r"\\xymatrix(?:@[A-Za-z0-9]+)?", "XY matrix:", text)
+
 
 def normalize_procedure_labels(text: str) -> str:
     """Split collapsed algorithm/procedure labels into list items."""
     labels = (
-        "Input", "Output", "Algorithm", "Prediction", "Reduction", "Factoring",
-        "Lemma Table Lookup", "Subsumption", "Answer Lookup",
+        "Input",
+        "Output",
+        "Algorithm",
+        "Prediction",
+        "Reduction",
+        "Factoring",
+        "Lemma Table Lookup",
+        "Subsumption",
+        "Answer Lookup",
     )
     label_pattern = "|".join(re.escape(label) for label in labels)
     text = re.sub(rf"(?<!\n)(?:\\-\s*|\s+-\s*)({label_pattern}):", r"\n- \1:", text)
     return re.sub(rf"(?m)^\\-\s*({label_pattern}):", r"- \1:", text)
 
+
 def normalize_inline_numbered_lists(text: str) -> str:
     """Split paragraphs that contain multiple inline numbered list markers."""
     paragraphs = text.split("\n\n")
     return "\n\n".join(split_inline_numbered_list_paragraph(part) for part in paragraphs)
+
 
 def split_inline_numbered_list_paragraph(paragraph: str) -> str:
     """Split one paragraph only when it clearly contains a collapsed list."""
@@ -2310,12 +2989,14 @@ def split_inline_numbered_list_paragraph(paragraph: str) -> str:
         return paragraph
     return re.sub(r"\s+([1-9]\d?\.)\s+(?=[A-Z])", r"\n\1 ", paragraph)
 
+
 def normalize_collapsed_tag_bullets(text: str) -> str:
     """Split long tagset paragraphs containing many ``- TAG:`` entries."""
     pattern = re.compile(r"\s+-\s+([A-Z][A-Z0-9]{1,12}:)")
     if len(pattern.findall(text)) < 20:
         return text
     return pattern.sub(lambda match: f"\n- {match.group(1)}", text)
+
 
 def replace_one_arg_macro(text: str, name: str, render) -> str:
     """Replace balanced one-argument macro uses."""
@@ -2324,9 +3005,10 @@ def replace_one_arg_macro(text: str, name: str, render) -> str:
         close = find_matching_brace(text, match.end() - 1)
         if close == -1:
             continue
-        arg = text[match.end():close].strip()
-        text = text[:match.start()] + render(arg) + text[close + 1:]
+        arg = text[match.end() : close].strip()
+        text = text[: match.start()] + render(arg) + text[close + 1 :]
     return text
+
 
 def replace_two_arg_macro(text: str, name: str, render) -> str:
     """Replace balanced two-argument macro uses."""
@@ -2336,24 +3018,29 @@ def replace_two_arg_macro(text: str, name: str, render) -> str:
         if not parsed:
             continue
         args, end = parsed
-        text = text[:match.start()] + render([arg.strip() for arg in args]) + text[end:]
+        text = text[: match.start()] + render([arg.strip() for arg in args]) + text[end:]
     return text
+
 
 def replace_unbraced_one_arg_macro(text: str, name: str, render) -> str:
     r"""Replace simple unbraced semantic macro uses such as ``\tuple\cdots``."""
     pattern = re.compile(rf"\\{re.escape(name)}(?![A-Za-z])\s*(\\[A-Za-z]+|[A-Za-z0-9_.-]+)")
     for match in reversed(list(pattern.finditer(text))):
-        text = text[:match.start()] + render(match.group(1).strip()) + text[match.end():]
+        text = text[: match.start()] + render(match.group(1).strip()) + text[match.end() :]
     return text
+
 
 def normalize_raw_feature_structure_envs(text: str) -> str:
     """Make surviving typed feature-structure wrappers readable."""
+
     def begin_replacement(match: re.Match) -> str:
         label = clean_linguistic_text(match.group(1) or "").strip()
         return f"[{label} " if label else "["
 
     def convert_part(part: str) -> str:
-        part = re.sub(r"\\begin\{tfs\}(?:\{([^{}\n]*)\})?", begin_replacement, part, flags=re.IGNORECASE)
+        part = re.sub(
+            r"\\begin\{tfs\}(?:\{([^{}\n]*)\})?", begin_replacement, part, flags=re.IGNORECASE
+        )
         part = re.sub(r"\\end\{tfs\}", "]", part, flags=re.IGNORECASE)
         return re.sub(
             r"\$\$\s*\\begin\{avm\}(.*?)\\end\{avm\}\s*\$\$",
@@ -2364,10 +3051,12 @@ def normalize_raw_feature_structure_envs(text: str) -> str:
 
     return apply_outside_fenced_code(text, convert_part)
 
+
 def fenced_avm_replacement(body: str) -> str:
     """Render a surviving AVM display as readable evidence text."""
     body = clean_avm_display_body(body)
     return f"\n\n```text\nAVM:\n{body}\n```\n\n" if body else ""
+
 
 def clean_avm_display_body(body: str) -> str:
     """Clean AVM matrix notation without erasing feature/value content."""
@@ -2394,6 +3083,7 @@ def clean_avm_display_body(body: str) -> str:
     body = re.sub(r" *\n *", "\n", body)
     return "\n".join(line.strip() for line in body.splitlines() if line.strip())
 
+
 def normalize_raw_section_commands(text: str) -> str:
     """Promote surviving balanced section commands to Markdown headings."""
     matches = list(RE_RAW_SECTION_COMMAND.finditer(text))
@@ -2401,7 +3091,7 @@ def normalize_raw_section_commands(text: str) -> str:
         close = find_matching_brace(text, match.end() - 1)
         if close == -1:
             continue
-        raw_title = text[match.end():close]
+        raw_title = text[match.end() : close]
         title = clean_source_title(raw_title) or clean_math_heading_title(raw_title)
         if not title:
             continue
@@ -2414,8 +3104,9 @@ def normalize_raw_section_commands(text: str) -> str:
             "paragraph": 4,
         }.get(match.group(1).lower(), 2)
         heading = f"\n\n{'#' * level} {title}\n\n"
-        text = text[:match.start()] + heading + text[close + 1:]
+        text = text[: match.start()] + heading + text[close + 1 :]
     return text
+
 
 def clean_math_heading_title(title: str) -> str:
     """Keep math-only section titles instead of dropping the heading."""
@@ -2423,6 +3114,7 @@ def clean_math_heading_title(title: str) -> str:
     title = title.replace("$", "").replace("\\", "")
     title = title.replace("{", " ").replace("}", " ")
     return " ".join(title.split()).strip(" .")
+
 
 def normalize_fallback_line(line: str) -> str:
     """Normalize one fallback-converted structural line."""
@@ -2435,16 +3127,19 @@ def normalize_fallback_line(line: str) -> str:
         return f"### {clean_fallback_heading(paragraph.group(1))}"
     return line
 
+
 def clean_fallback_heading(value: str) -> str:
     """Clean a fallback heading label without changing its meaning."""
     value = " ".join(value.strip(" .").split())
     return value[:1].upper() + value[1:] if value else value
+
 
 def restore_verbatim_blocks(text: str) -> str:
     """Restore protected verbatim blocks as fenced code."""
     if VERBATIM_BEGIN not in text:
         return text
     return restore_verbatim_lines(text.splitlines())
+
 
 def restore_verbatim_lines(lines: list[str]) -> str:
     """Restore protected verbatim markers line by line."""
@@ -2463,6 +3158,7 @@ def restore_verbatim_lines(lines: list[str]) -> str:
         output.extend(["```text", *restore_code_lines(code), "```"])
     return "\n".join(output)
 
+
 def restore_code_lines(lines: list[str]) -> list[str]:
     """Decode protected backslashes inside a code block."""
     output = []
@@ -2470,6 +3166,7 @@ def restore_code_lines(lines: list[str]) -> list[str]:
         decoded = line.replace(BACKSLASH_SENTINEL, "\\").replace(PERCENT_SENTINEL, "%")
         output.extend(decoded.split(NEWLINE_SENTINEL))
     return output
+
 
 def normalize_markdown_code_fences(text: str) -> str:
     """Repair repeated or unterminated fenced text blocks."""
@@ -2491,11 +3188,13 @@ def normalize_markdown_code_fences(text: str) -> str:
         output.append("```")
     return "\n".join(output)
 
+
 def strip_verbatim_sentinels(text: str) -> str:
     """Remove protected-code markers left behind by lossy converters."""
     text = text.replace(VERBATIM_BEGIN, "")
     text = text.replace(VERBATIM_END, "")
     return text.replace(BACKSLASH_SENTINEL, "\\")
+
 
 def strip_converted_front_matter(text: str) -> str:
     """Drop converted title/author/abstract blocks already in metadata."""
@@ -2504,15 +3203,17 @@ def strip_converted_front_matter(text: str) -> str:
     match = RE_CONVERTED_SECTION_LINE.search(text[:5000])
     if not match or match.start() < 20:
         return text
-    prefix = text[:match.start()]
+    prefix = text[: match.start()]
     if looks_like_converted_front_matter(prefix) or looks_like_short_citation_prefix(prefix):
-        return text[match.start():]
+        return text[match.start() :]
     return text
+
 
 def looks_like_converted_front_matter(prefix: str) -> bool:
     """Detect title/author/affiliation blocks before the real body."""
     compact = normalize_for_search(prefix).lower()
     return len(prefix) < 3500 and any(hint in compact for hint in FRONT_MATTER_HINTS)
+
 
 def looks_like_short_citation_prefix(prefix: str) -> bool:
     """Detect stray citation-key lists before the first section."""
@@ -2522,6 +3223,7 @@ def looks_like_short_citation_prefix(prefix: str) -> bool:
     sentence_marks = compact.count(".") + compact.count("?") + compact.count("!")
     citationish = len(re.findall(r"[A-Za-z]+[-+][A-Za-z0-9]+|\w+:\d+", compact))
     return sentence_marks < 2 and citationish >= 2
+
 
 def strip_leading_abstract_paragraph(text: str) -> str:
     """Remove converted title/abstract prose when no abstract env survived."""
@@ -2537,8 +3239,9 @@ def strip_leading_abstract_paragraph(text: str) -> str:
     if normalized[abstract_at:next_para].strip().rstrip(".") == "abstract":
         second_para = text.find("\n\n", next_para + 2)
         if second_para != -1 and second_para < 3500:
-            return text[second_para + 2:]
-    return text[next_para + 2:]
+            return text[second_para + 2 :]
+    return text[next_para + 2 :]
+
 
 def strip_markdown_attributes(text: str) -> str:
     """Remove pandoc reference attributes without scanning every character."""
@@ -2546,19 +3249,23 @@ def strip_markdown_attributes(text: str) -> str:
         return text
     return "\n".join(strip_markdown_attribute_line(line) for line in text.splitlines())
 
+
 def strip_markdown_attribute_line(line: str) -> str:
     """Remove a trailing Pandoc-style attribute from one line."""
     if "{#" not in line:
         return line
     return RE_MARKDOWN_ATTRIBUTE.sub("", line)
 
+
 def strip_trailing_spaces(text: str) -> str:
     """Strip trailing horizontal whitespace without regex backtracking."""
     return "\n".join(line.rstrip(" \t") for line in text.splitlines())
 
+
 def reflow_paragraphs(text: str) -> str:
     """Join converter-introduced hard wraps inside prose paragraphs."""
     return "\n\n".join(reflow_one_paragraph(part) for part in text.split("\n\n"))
+
 
 def reflow_one_paragraph(paragraph: str) -> str:
     """Reflow a paragraph only when it looks like prose, not code or math."""
@@ -2566,6 +3273,7 @@ def reflow_one_paragraph(paragraph: str) -> str:
     if len(lines) < 2 or not should_reflow_lines(lines):
         return paragraph.strip()
     return " ".join(lines)
+
 
 def should_reflow_lines(lines: list[str]) -> bool:
     """Return true for ordinary prose lines wrapped by source formatting."""
@@ -2576,16 +3284,21 @@ def should_reflow_lines(lines: list[str]) -> bool:
         return False
     if len(re.findall(r"[A-Za-z]", joined)) < max(20, len(joined) // 5):
         return False
-    codeish = sum(1 for line in lines if re.search(r"\b(?:In|Out)\[\d+\]|[/{}]{3,}|^\s*[A-Za-z0-9_.-]+\s*=", line))
+    codeish = sum(
+        1
+        for line in lines
+        if re.search(r"\b(?:In|Out)\[\d+\]|[/{}]{3,}|^\s*[A-Za-z0-9_.-]+\s*=", line)
+    )
     return codeish == 0
+
 
 def is_structural_line(line: str) -> bool:
     """Identify lines that should keep their own Markdown/text layout."""
     stripped = line.strip()
-    return (
-        stripped.startswith(("#", "§", "-", "*", "+", ">", "|", "$", "\\", "```"))
-        or stripped.endswith("\\")
-    )
+    return stripped.startswith(
+        ("#", "§", "-", "*", "+", ">", "|", "$", "\\", "```")
+    ) or stripped.endswith("\\")
+
 
 def merge_soft_wrapped_blocks(text: str) -> str:
     """Merge prose blocks split by blank lines at physical line breaks."""
@@ -2602,6 +3315,7 @@ def merge_soft_wrapped_blocks(text: str) -> str:
     flush_pending(merged, pending)
     return "\n\n".join(part for part in merged if part)
 
+
 def is_soft_wrap_block(block: str) -> bool:
     """Identify one-line prose fragments caused by blank-line wrapping."""
     stripped = block.strip()
@@ -2614,9 +3328,11 @@ def is_soft_wrap_block(block: str) -> bool:
     words = stripped.split()
     return 2 <= len(words) <= 18 and bool(re.search(r"[A-Za-z]{3}", stripped))
 
+
 def ends_sentence(block: str) -> bool:
     """Detect when a soft-wrapped prose sentence/paragraph likely ends."""
     return block.strip().endswith((".", "?", "!", '."', '."', ".)", ".'"))
+
 
 def flush_pending(merged: list[str], pending: list[str]) -> None:
     """Append pending soft-wrapped prose to merged output."""
@@ -2624,9 +3340,11 @@ def flush_pending(merged: list[str], pending: list[str]) -> None:
         merged.append(" ".join(pending))
         pending.clear()
 
+
 def normalize_for_search(text: str) -> str:
     """Normalize styled Unicode letters before keyword checks."""
     return unicodedata.normalize("NFKD", text)
+
 
 def source_section_titles(tex: str) -> list[str]:
     """Extract source section titles with enough cleanup for coverage checks."""
@@ -2635,10 +3353,11 @@ def source_section_titles(tex: str) -> list[str]:
         close = find_matching_brace(tex, match.end() - 1)
         if close == -1:
             continue
-        title = clean_source_title(tex[match.end():close])
+        title = clean_source_title(tex[match.end() : close])
         if len(title) >= 4:
             titles.append(title)
     return titles
+
 
 def clean_source_title(title: str) -> str:
     """Convert a TeX title argument into searchable plain text."""
@@ -2655,16 +3374,18 @@ def clean_source_title(title: str) -> str:
     title = " ".join(title.replace("\n", " ").split())
     return title.strip(" .")
 
+
 def section_title_hits(titles: list[str], md: str) -> tuple[int, int]:
     """Count how many source section titles appear in converted text."""
     haystack = normalized_title_text(md)
-    late_haystack = normalized_title_text(md[len(md) // 3:])
+    late_haystack = normalized_title_text(md[len(md) // 3 :])
     normalized = [normalized_title_text(title) for title in titles]
     normalized = [title for title in normalized if len(title) >= 4]
     hits = sum(1 for title in normalized if title in haystack)
-    tail = normalized[-min(3, len(normalized)):]
+    tail = normalized[-min(3, len(normalized)) :]
     tail_hits = sum(1 for title in tail if title in late_haystack)
     return hits, tail_hits
+
 
 def normalized_title_text(text: str) -> str:
     """Normalize text for loose section-title matching."""
@@ -2672,10 +3393,12 @@ def normalized_title_text(text: str) -> str:
     text = re.sub(r"[^a-z0-9]+", " ", text)
     return " ".join(text.split())
 
+
 def finalize_converted_markdown(tex: str, md: str) -> str:
     """Apply postprocessing plus source-aware structural repairs."""
     md = postprocess(md)
     return promote_plain_source_headings(tex, md)
+
 
 def promote_plain_source_headings(tex: str, md: str) -> str:
     """Promote standalone source section titles emitted as plain text."""
@@ -2693,9 +3416,11 @@ def promote_plain_source_headings(tex: str, md: str) -> str:
             output.append(line)
     return "\n".join(output)
 
+
 def heading_level_for_title(title: str) -> int:
     """Choose a Markdown heading level for a source title."""
     return 2 if re.match(r"^\d+(?:\.\d+)*\.?\s+", title) else 1
+
 
 def clean_metadata_text(text: str) -> str:
     """Clean simple LaTeX markup in metadata fields."""
@@ -2705,6 +3430,7 @@ def clean_metadata_text(text: str) -> str:
     text = text.replace(r"\&", "&")
     text = normalize_surviving_latex_structure(text)
     return " ".join(text.strip().split())
+
 
 def is_support_file(name: str, content: str) -> bool:
     """Return true for TeX support files that are not article bodies."""
